@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>John's Lawn Care | CFAY Yokosuka</title>
+  <meta name="description" content="Lawn mowing for base housing at Fleet Activities Yokosuka. Mowing from $10. Message on WhatsApp or email, pay by card." />
+  <meta name="theme-color" content="#2F6B34" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --turf: #2F6B34;
+      --turf-light: #4E8C3F;
+      --clover: #EEF3E6;
+      --paper: #FAFBF7;
+      --ink: #1C2619;
+      --muted: #56644F;
+      --mower: #F2C230;
+      --line: #D5DECB;
+      --display: "Bowlby One", "Arial Black", Impact, sans-serif;
+      --body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    *, *::before, *::after { box-sizing: inherit; }
+    html { scroll-behavior: smooth; scroll-padding-top: env(safe-area-inset-top, 0px); }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 1.0625rem;
+      line-height: 1.55;
+    }
+    img { max-width: 100%; }
+    a { color: var(--turf); }
+    :focus-visible { outline: 3px solid var(--mower); outline-offset: 3px; border-radius: 4px; }
+
+    .wrap { width: min(100% - 2.5rem, 42rem); margin-inline: auto; }
+
+    /* Hero: fresh-cut lawn stripes */
+    .hero {
+      background:
+        repeating-linear-gradient(
+          100deg,
+          var(--turf) 0 64px,
+          var(--turf-light) 64px 128px
+        );
+      color: #fff;
+      padding: 4.5rem 0 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      /* soft edge where the lawn meets the page */
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 18px;
+      background: var(--paper);
+      clip-path: polygon(0 100%, 0 40%, 4% 70%, 8% 30%, 12% 65%, 16% 35%, 20% 70%, 24% 30%, 28% 60%, 32% 25%, 36% 65%, 40% 35%, 44% 70%, 48% 30%, 52% 60%, 56% 25%, 60% 65%, 64% 35%, 68% 70%, 72% 30%, 76% 60%, 80% 25%, 84% 65%, 88% 35%, 92% 70%, 96% 30%, 100% 55%, 100% 100%);
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(2.6rem, 11vw, 4.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+      margin: 0 0 1rem;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
+    }
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 30ch;
+      margin: 0 0 2rem;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font: 700 1rem/1 var(--body);
+      text-decoration: none;
+      padding: 0.95rem 1.3rem;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .btn-pay { background: var(--mower); color: var(--ink); }
+    .btn-pay:hover { background: #FFD24A; }
+    .btn-light { background: #fff; color: var(--turf); }
+    .btn-light:hover { background: var(--clover); }
+    .btn-outline { background: transparent; color: var(--turf); border-color: var(--turf); }
+    .btn-outline:hover { background: var(--clover); }
+    .btn svg { width: 20px; height: 20px; flex: none; }
+
+    /* Sections */
+    section { padding: 3rem 0; }
+    section + section { border-top: 1px solid var(--line); }
+    h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(1.6rem, 6vw, 2.1rem);
+      line-height: 1.1;
+      margin: 0 0 1.25rem;
+      color: var(--turf);
+    }
+    .lead { color: var(--muted); margin: -0.5rem 0 1.5rem; }
+
+    /* Pricing */
+    .prices { list-style: none; margin: 0; padding: 0; }
+    .prices li {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .prices li:last-child { border-bottom: 0; }
+    .prices .name { font-weight: 700; }
+    .prices .note { display: block; font-weight: 400; color: var(--muted); font-size: 0.95rem; }
+    .prices .amt { font-family: var(--display); font-size: 1.3rem; color: var(--ink); white-space: nowrap; }
+
+    /* Steps (a real sequence, so numbered) */
+    .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
+    .steps li { counter-increment: step; display: grid; grid-template-columns: 2.5rem 1fr; gap: 0.75rem; align-items: start; }
+    .steps li::before {
+      content: counter(step);
+      font-family: var(--display);
+      font-size: 1.1rem;
+      width: 2.5rem; height: 2.5rem;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: var(--clover);
+      color: var(--turf);
+    }
+    .steps strong { display: block; }
+    .steps span { color: var(--muted); }
+
+    /* Contact + pay */
+    .contact-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .pay-box {
+      background: var(--clover);
+      border-radius: 20px;
+      padding: 1.5rem;
+      display: grid;
+      gap: 1.25rem;
+      align-items: center;
+    }
+    @media (min-width: 560px) {
+      .pay-box { grid-template-columns: 1fr auto; }
+    }
+    .qr {
+      background: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      width: fit-content;
+      justify-self: start;
+    }
+    .qr canvas, .qr img { display: block; width: 160px; height: 160px; }
+    .qr-caption { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; text-align: center; }
+    .small { font-size: 0.95rem; color: var(--muted); }
+    .notice.equipment { margin-top: 1.25rem; }
+    .notice {
+      background: #FFF6D6;
+      border: 1px solid #EBD58A;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font-size: 0.95rem;
+    }
+
+    footer { padding: 2rem 0 3rem; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="wrap">
+      <h1 id="biz-name">John's Lawn Care</h1>
+      <p id="tagline">Mowing and yard cleanup for base housing at CFAY Yokosuka.</p>
+      <div class="actions">
+        <a class="btn btn-light" id="hero-whatsapp" href="#contact">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg>
+          Message on WhatsApp
+        </a>
+        <a class="btn btn-pay" href="#pay">Pay for a mow</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="services">
+      <div class="wrap">
+        <h2>Services and prices</h2>
+        <p class="lead">Prices are per lawn, per visit.</p>
+        <ul class="prices" id="price-list"></ul>
+        <div class="notice equipment" id="equipment-note"></div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><div><strong>Send a message</strong><span>Tell John your housing area and when you'd like it done.</span></div></li>
+          <li><div><strong>Give access to your shed</strong><span>John uses your lawnmower and string trimmer, so make sure your outdoor shed is open or unlocked on mow day.</span></div></li>
+          <li><div><strong>Get your lawn mowed</strong><span>Mowed and string trimmed along the fence line. Choose bagging if you want the clippings raked up.</span></div></li>
+          <li><div><strong>Pay by card</strong><span>Use the pay link or QR code below, or the invoice sent to your email.</span></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="area">
+      <div class="wrap">
+        <h2>Where John mows</h2>
+        <p id="service-area"></p>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="wrap">
+        <h2>Get in touch</h2>
+        <p class="lead">WhatsApp is the fastest way to reach John.</p>
+        <div class="contact-actions">
+          <a class="btn btn-outline" id="contact-whatsapp" href="#">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg>
+            WhatsApp
+          </a>
+          <a class="btn btn-outline" id="contact-email" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            Email
+          </a>
+        </div>
+        <p class="small" id="email-text"></p>
+      </div>
+    </section>
+
+    <section id="pay">
+      <div class="wrap">
+        <h2>Pay for your mow</h2>
+        <div class="pay-box">
+          <div>
+            <p style="margin-top:0">Enter the amount for your service and pay securely by card through Stripe. You'll get a receipt by email.</p>
+            <a class="btn btn-pay" id="pay-link" href="#" target="_blank" rel="noopener">Pay with card</a>
+            <p class="small" style="margin-bottom:0">Got an invoice? Use the pay button in that email instead.</p>
+          </div>
+          <div id="qr-wrap">
+            <div class="qr" id="qr"></div>
+            <div class="qr-caption">Scan to pay</div>
+          </div>
+        </div>
+        <div class="notice" id="pay-notice" hidden>The online payment link isn't set up yet. Message John to arrange payment.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p style="margin:0">© <span id="year"></span> <span id="footer-name"></span>. Serving base housing at Fleet Activities Yokosuka.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    /* ============================================================
+       EDIT THIS BLOCK — everything on the page reads from here
+       ============================================================ */
+    const CONFIG = {
+      businessName: "John's Lawn Care",
+      tagline: "Mowing and yard cleanup for base housing at CFAY Yokosuka.",
+      email: "john@example.com",
+      // WhatsApp: full international number, digits only (Japan cell example: 819012345678)
+      whatsapp: "819000000000",
+      whatsappGreeting: "Hi John, I'd like a quote for lawn mowing. My housing area is: ",
+      // Stripe Payment Link (set to "customers choose what to pay"), e.g. https://buy.stripe.com/xxxx
+      stripePaymentLink: "",
+      serviceArea: "Base housing areas at CFAY. Not sure if you're in range? Send a message and ask.",
+      prices: [
+        { name: "Standard mow", note: "Mow, string trim fence line", amount: "$10" },
+        { name: "Mow and bag", note: "Clippings raked, bagged, and left in your trash area", amount: "$20" }
+      ],
+      equipmentNote: "John uses the lawnmower and string trimmer from your outdoor shed, so he'll need access to it when he comes to mow."
+    };
+    /* ============================================================ */
+
+    const $ = (id) => document.getElementById(id);
+
+    // Text content
+    document.title = `${CONFIG.businessName} | CFAY Yokosuka`;
+    $("biz-name").textContent = CONFIG.businessName;
+    $("tagline").textContent = CONFIG.tagline;
+    $("service-area").textContent = CONFIG.serviceArea;
+    $("footer-name").textContent = CONFIG.businessName;
+    $("year").textContent = new Date().getFullYear();
+
+    // Prices
+    $("price-list").innerHTML = CONFIG.prices.map(p => `
+      <li>
+        <span class="name">${p.name}<span class="note">${p.note}</span></span>
+        <span class="amt">${p.amount}</span>
+      </li>`).join("");
+
+    // Equipment / shed access note
+    $("equipment-note").textContent = CONFIG.equipmentNote;
+
+    // WhatsApp links with a prefilled message
+    const waUrl = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(CONFIG.whatsappGreeting)}`;
+    ["hero-whatsapp", "contact-whatsapp"].forEach(id => {
+      const a = $(id);
+      a.href = waUrl;
+      a.target = "_blank";
+      a.rel = "noopener";
+    });
+
+    // Email
+    const subject = encodeURIComponent(`Lawn mowing request`);
+    $("contact-email").href = `mailto:${CONFIG.email}?subject=${subject}`;
+    $("email-text").textContent = `Or email ${CONFIG.email}`;
+
+    // Payment link + QR code
+    if (CONFIG.stripePaymentLink) {
+      $("pay-link").href = CONFIG.stripePaymentLink;
+      try {
+        new QRCode($("qr"), {
+          text: CONFIG.stripePaymentLink,
+          width: 160,
+          height: 160,
+          colorDark: "#1C2619",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch (e) {
+        $("qr-wrap").hidden = true;
+      }
+    } else {
+      $("pay-link").hidden = true;
+      $("qr-wrap").hidden = true;
+      $("pay-notice").hidden = false;
+    }
+  </script>
+</body>
+</html>
