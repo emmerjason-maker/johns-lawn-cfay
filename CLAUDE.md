@@ -26,7 +26,8 @@ Change content there, not in the markup.
   Plan is a separate Stripe account for this business.
 
 ## Still to do
-- Replace placeholder email and WhatsApp number in CONFIG.
+- Fill in email and WhatsApp number in CONFIG (currently blank, which hides
+  those buttons and shows a "coming soon" notice).
 - Create the Stripe Payment Link and paste it into CONFIG.stripePaymentLink.
 - Confirm home-based business approval for operating on base.
 
