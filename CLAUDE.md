@@ -20,6 +20,10 @@ Change content there, not in the markup.
 - Mow and bag — Clippings raked, bagged, and left in your trash area — $20
 - John uses the customer's lawnmower and string trimmer, so he needs access
   to their outdoor shed.
+- Audience: Navy families in CFAY base housing. A navy "Built around Navy life"
+  section covers duty days, deployments, and PCS move-out (CONFIG.navyPerks).
+- Footer disclaimer: independent business, not affiliated with or endorsed by
+  the U.S. Navy or CFAY. Keep it; don't use official Navy seals or insignia.
 - Contact: WhatsApp (primary) and email.
 - Payments: Stripe Payment Link ("customers choose what to pay") with an
   auto-generated QR code; invoices sent from the Stripe dashboard.
@@ -36,4 +40,4 @@ Change content there, not in the markup.
 - Never commit Stripe secret keys. The public Payment Link URL is fine.
 - When proposing changes, output the complete updated file for copy/paste.
 - Design: lawn-stripe hero, Bowlby One + Figtree, greens with a mower-yellow
-  pay button. Keep that look.
+  pay button, plus one navy-and-gold band for the Navy section. Keep that look.
