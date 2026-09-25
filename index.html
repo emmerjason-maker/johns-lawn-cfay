@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>John's Lawn Care | CFAY Yokosuka</title>
-  <meta name="description" content="Lawn mowing for Navy families in base housing at Fleet Activities Yokosuka. Mowing from $10. Message on WhatsApp or email, pay by card." />
+  <meta name="description" content="Lawn mowing for base housing at Fleet Activities Yokosuka. Mowing from $10. Message on WhatsApp or email, pay by card." />
   <meta name="theme-color" content="#2F6B34" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,8 +20,6 @@
       --muted: #56644F;
       --mower: #F2C230;
       --line: #D5DECB;
-      --navy: #1B2A4A;
-      --navy-light: #26395F;
       --display: "Bowlby One", "Arial Black", Impact, sans-serif;
       --body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       box-sizing: border-box;
@@ -132,24 +130,6 @@
     .prices .note { display: block; font-weight: 400; color: var(--muted); font-size: 0.95rem; }
     .prices .amt { font-family: var(--display); font-size: 1.3rem; color: var(--ink); white-space: nowrap; }
 
-    /* Navy band: navy and gold, for Navy families */
-    section.navy-band { background: var(--navy); color: #fff; border-top: 0; }
-    .navy-band + section { border-top: 0; }
-    .navy-band h2 { color: #fff; }
-    .navy-band .lead { color: rgba(255, 255, 255, 0.8); }
-    .perks { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
-    @media (min-width: 560px) {
-      .perks { grid-template-columns: repeat(3, 1fr); }
-    }
-    .perks li {
-      background: var(--navy-light);
-      border-top: 4px solid var(--mower);
-      border-radius: 14px;
-      padding: 1.1rem 1.1rem 1.2rem;
-    }
-    .perks strong { display: block; color: var(--mower); margin-bottom: 0.3rem; }
-    .perks span { color: rgba(255, 255, 255, 0.85); font-size: 0.97rem; }
-
     /* Steps (a real sequence, so numbered) */
     .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
     .steps li { counter-increment: step; display: grid; grid-template-columns: 2.5rem 1fr; gap: 0.75rem; align-items: start; }
@@ -199,7 +179,6 @@
     }
 
     footer { padding: 2rem 0 3rem; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); }
-    footer p + p { margin-top: 0.5rem; }
   </style>
 </head>
 <body>
@@ -207,7 +186,7 @@
   <header class="hero">
     <div class="wrap">
       <h1 id="biz-name">John's Lawn Care</h1>
-      <p id="tagline">Lawn mowing for Navy families in CFAY Yokosuka base housing.</p>
+      <p id="tagline">Mowing and yard cleanup for base housing at CFAY Yokosuka.</p>
       <div class="actions">
         <a class="btn btn-light" id="hero-whatsapp" href="#contact">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg>
@@ -225,14 +204,6 @@
         <p class="lead">Prices are per lawn, per visit.</p>
         <ul class="prices" id="price-list"></ul>
         <div class="notice equipment" id="equipment-note"></div>
-      </div>
-    </section>
-
-    <section id="navy" class="navy-band">
-      <div class="wrap">
-        <h2 id="navy-heading"></h2>
-        <p class="lead" id="navy-lead"></p>
-        <ul class="perks" id="perk-list"></ul>
       </div>
     </section>
 
@@ -295,8 +266,7 @@
 
   <footer>
     <div class="wrap">
-      <p style="margin:0">© <span id="year"></span> <span id="footer-name"></span>. Serving Navy families in base housing at Fleet Activities Yokosuka.</p>
-      <p style="margin-bottom:0" id="disclaimer"></p>
+      <p style="margin:0">© <span id="year"></span> <span id="footer-name"></span>. Serving base housing at Fleet Activities Yokosuka.</p>
     </div>
   </footer>
 
@@ -307,7 +277,7 @@
        ============================================================ */
     const CONFIG = {
       businessName: "John's Lawn Care",
-      tagline: "Lawn mowing for Navy families in CFAY Yokosuka base housing.",
+      tagline: "Mowing and yard cleanup for base housing at CFAY Yokosuka.",
       // Leave email or whatsapp blank ("") to hide that contact option until it's ready
       email: "",
       // WhatsApp: full international number, digits only (Japan cell example: 819012345678)
@@ -320,15 +290,7 @@
         { name: "Standard mow", note: "Mow, string trim fence line", amount: "$10" },
         { name: "Mow and bag", note: "Clippings raked, bagged, and left in your trash area", amount: "$20" }
       ],
-      equipmentNote: "John uses the lawnmower and string trimmer from your outdoor shed, so he'll need access to it when he comes to mow.",
-      navyHeading: "Built around Navy life",
-      navyLead: "Duty days, deployments, and PCS season make yard work easy to fall behind on. John keeps it handled.",
-      navyPerks: [
-        { title: "On duty or underway?", text: "You don't need to be home. Leave your shed open on mow day and John takes care of the rest." },
-        { title: "Deployment support", text: "Set up a regular mow so the yard stays sharp while your Sailor is away." },
-        { title: "PCS move-out", text: "Get the lawn mowed and bagged before your housing checkout." }
-      ],
-      disclaimer: "Independent home-based business. Not affiliated with or endorsed by the U.S. Navy or Fleet Activities Yokosuka."
+      equipmentNote: "John uses the lawnmower and string trimmer from your outdoor shed, so he'll need access to it when he comes to mow."
     };
     /* ============================================================ */
 
@@ -351,15 +313,6 @@
 
     // Equipment / shed access note
     $("equipment-note").textContent = CONFIG.equipmentNote;
-
-    // Navy families section
-    $("navy-heading").textContent = CONFIG.navyHeading;
-    $("navy-lead").textContent = CONFIG.navyLead;
-    $("perk-list").innerHTML = CONFIG.navyPerks.map(p => `
-      <li><strong>${p.title}</strong><span>${p.text}</span></li>`).join("");
-
-    // Footer disclaimer
-    $("disclaimer").textContent = CONFIG.disclaimer;
 
     // WhatsApp links with a prefilled message
     if (CONFIG.whatsapp) {
