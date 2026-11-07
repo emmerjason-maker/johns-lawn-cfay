@@ -1,0 +1,12 @@
+{
+  "name": "Pushy Dos Scoreboard",
+  "short_name": "Pushy Dos",
+  "start_url": "pushy-dos.html",
+  "display": "standalone",
+  "background_color": "#FBF5D3",
+  "theme_color": "#FBF5D3",
+  "icons": [
+    { "src": "pushy-dos-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "pushy-dos-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

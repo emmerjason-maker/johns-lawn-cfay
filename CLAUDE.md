@@ -18,6 +18,8 @@ Fleet Activities Yokosuka (CFAY), Japan.
   (Extensions → Apps Script) and deployed as a web app. Not served by the site.
 - `pushy-dos-avatars/`: illustrated player pictures (SVG). The sheet's Avatar
   column links to them by their GitHub Pages URL.
+- `pushy-dos.webmanifest`, `pushy-dos-icon-*.png`: home screen app icon/manifest
+  for the scoreboard.
 
 ## Where to edit
 All content lives in the `CONFIG` object near the bottom of `index.html`:

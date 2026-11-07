@@ -2,7 +2,8 @@
  * Pushy Dos Scoreboard: Google Apps Script web app
  *
  * Lets pushy-dos.html read the scores live and write back to the Google Sheet:
- * record a win, undo the last game, and set a player's avatar.
+ * record a win, undo the last game, set a player's avatar, and check in
+ * who's playing tonight.
  *
  * SETUP (once):
  * 1. Open the "Pushy Dos Scoreboard" Google Sheet.
@@ -18,8 +19,11 @@
  */
 
 const STANDINGS = "Standings";
-const GAMES = "Games";
-const MAX_PLAYERS = 10; // Standings rows 2 to 11
+const GAMES = "Games";        // A: Date (game night), B: Winner, C: Recorded (time entered)
+const NIGHTS = "Nights";      // A: Night, B: Players (comma-separated). Created automatically.
+const MAX_PLAYERS = 10;       // Standings rows 2 to 11
+const NIGHT_CUTOFF_HOURS = 4; // a game night runs until 4 a.m.
+const UNDO_HOURS = 3;         // undo only works this long after a win
 
 function doGet() {
   return json_(readAll_());
@@ -37,19 +41,38 @@ function doPost(e) {
     if (req.action === "addWin") {
       if (names.indexOf(req.winner) < 0) return json_({ error: "Unknown player." });
       const row = lastGameRow_(games) + 1;
-      const today = Utilities.formatDate(new Date(), ss_().getSpreadsheetTimeZone(), "yyyy-MM-dd");
-      games.getRange(row, 1, 1, 2).setValues([[today, req.winner]]);
+      const now = new Date();
+      games.getRange(row, 3).clearDataValidations();
+      games.getRange(row, 1, 1, 3).setValues([[nightKey_(now), req.winner, now]]);
       games.getRange(row, 1).setNumberFormat("yyyy-mm-dd");
+      games.getRange(row, 3).setNumberFormat("yyyy-mm-dd hh:mm");
     } else if (req.action === "undo") {
       const row = lastGameRow_(games);
       if (row < 2) return json_({ error: "There are no games to undo." });
-      games.getRange(row, 1, 1, games.getLastColumn()).clearContent();
+      const t = games.getRange(row, 3).getValue();
+      if (!(t instanceof Date) || Date.now() - t.getTime() > UNDO_HOURS * 3600 * 1000) {
+        return json_({ error: "Undo only works for " + UNDO_HOURS + " hours after a win. To fix an older game, edit the Games tab in the sheet." });
+      }
+      games.getRange(row, 1, 1, 3).clearContent();
     } else if (req.action === "setAvatar") {
       const p = players.filter(x => x.name === req.player)[0];
       if (!p) return json_({ error: "Unknown player." });
       const col = headerIndex_(STANDINGS, "avatar");
       if (col < 0) return json_({ error: "The Standings tab has no Avatar column." });
       ss_().getSheetByName(STANDINGS).getRange(p.row, col + 1).setValue(cleanAvatar_(req.avatar));
+    } else if (req.action === "checkIn") {
+      const list = (Array.isArray(req.players) ? req.players : []).filter(n => names.indexOf(n) >= 0);
+      const sh = nightsSheet_();
+      const key = nightKey_(new Date());
+      const last = sh.getLastRow();
+      let row = -1;
+      if (last >= 2) {
+        const keys = sh.getRange(2, 1, last - 1, 1).getDisplayValues();
+        for (let i = 0; i < keys.length; i++) if (String(keys[i][0]).trim() === key) row = i + 2;
+      }
+      if (row < 0) row = last + 1;
+      sh.getRange(row, 1).setNumberFormat("@");
+      sh.getRange(row, 1, 1, 2).setValues([[key, list.join(", ")]]);
     } else {
       return json_({ error: "Unknown action." });
     }
@@ -66,7 +89,8 @@ function doPost(e) {
 function readAll_() {
   return {
     players: readPlayers_().map(p => ({ name: p.name, wins: p.wins, status: p.status, avatar: p.avatar })),
-    games: readGames_()
+    games: readGames_(),
+    nights: readNights_()
   };
 }
 
@@ -89,9 +113,43 @@ function readGames_() {
   const sh = ss_().getSheetByName(GAMES);
   const last = lastGameRow_(sh);
   if (last < 2) return [];
-  return sh.getRange(2, 1, last - 1, 2).getDisplayValues()
-    .filter(r => String(r[1]).trim())
-    .map(r => ({ date: r[0], winner: String(r[1]).trim() }));
+  const disp = sh.getRange(2, 1, last - 1, 2).getDisplayValues();
+  const raw = sh.getRange(2, 3, last - 1, 1).getValues();
+  const out = [];
+  for (let i = 0; i < disp.length; i++) {
+    const winner = String(disp[i][1]).trim();
+    if (!winner) continue;
+    const t = raw[i][0];
+    out.push({ date: String(disp[i][0]).trim(), winner: winner, ts: t instanceof Date ? t.getTime() : null });
+  }
+  return out;
+}
+
+function readNights_() {
+  const sh = ss_().getSheetByName(NIGHTS);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 2).getDisplayValues()
+    .filter(r => String(r[0]).trim())
+    .map(r => ({
+      night: String(r[0]).trim(),
+      players: String(r[1]).split(",").map(s => s.trim()).filter(Boolean)
+    }));
+}
+
+function nightsSheet_() {
+  let sh = ss_().getSheetByName(NIGHTS);
+  if (!sh) {
+    sh = ss_().insertSheet(NIGHTS);
+    sh.getRange(1, 1, 1, 2).setValues([["Night", "Players"]]);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+// The game night a moment belongs to: anything before 4 a.m. counts as the night before
+function nightKey_(d) {
+  const shifted = new Date(d.getTime() - NIGHT_CUTOFF_HOURS * 3600 * 1000);
+  return Utilities.formatDate(shifted, ss_().getSpreadsheetTimeZone(), "yyyy-MM-dd");
 }
 
 // Last row in the Games tab with a winner filled in (1 = header only)

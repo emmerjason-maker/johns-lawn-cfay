@@ -6,6 +6,15 @@
   <meta name="robots" content="noindex" />
   <title>Pushy Dos Scoreboard</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
+  <!-- Home screen app -->
+  <link rel="manifest" href="pushy-dos.webmanifest" />
+  <link rel="apple-touch-icon" href="pushy-dos-icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Pushy Dos" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#FBF5D3" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1E2A24" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
@@ -13,6 +22,7 @@
     /* Legal-pad score sheet (chalkboard in dark mode), fed by the Google Sheet */
     :root {
       --paper: #FBF5D3; --rule: #B9CDE6; --margin: #E07A7A; --ink: #22303F; --muted: #5E6878; --lead: #DDEFD9;
+      --gold: #E6A817;
       --p1: #1F5FAF; --p2: #B23A3A; --p3: #2E7D4F; --p4: #7A4AA6; --p5: #B8640F; --p6: #0F7C86; --p7: #A63A7A; --p8: #5A6B1F;
       --hand: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
       --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -22,6 +32,7 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --paper: #1E2A24; --rule: #2F3E36; --margin: #8C4B4B; --ink: #EDEFE6; --muted: #A9B3AA; --lead: #2A3D31;
+        --gold: #F2C14E;
         --p1: #8FB8F0; --p2: #F09A9A; --p3: #8FD6A8; --p4: #C9A6EE; --p5: #F2B872; --p6: #7FD3DB; --p7: #EE9CCB; --p8: #C3D67F;
         color-scheme: dark;
       }
@@ -42,6 +53,15 @@
     .status { font-size: 0.9rem; }
     .notice { background: var(--lead); border-radius: 12px; padding: 0.9rem 1rem; }
 
+    /* Night champion banner */
+    .champ {
+      display: flex; align-items: center; gap: 0.9rem; padding: 0.9rem 1rem; border-radius: 14px;
+      border: 2px solid var(--gold); background: color-mix(in srgb, var(--gold) 14%, var(--paper));
+    }
+    .champ .big { font-size: 2rem; line-height: 1; }
+    .champ p { margin: 0; }
+    .champ .t { font-family: var(--hand); font-size: 1.5rem; line-height: 1.1; }
+
     /* Buttons */
     .btn {
       font: inherit; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
@@ -55,6 +75,7 @@
     /* Record a win */
     .record { display: grid; gap: 0.6rem; }
     .record h2 { margin: 0; }
+    .roster { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin: 0; }
     .win-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .win-buttons .btn { border-color: var(--c); color: var(--c); font-family: var(--hand); font-size: 1.3rem; font-weight: 400; }
     .record-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
@@ -125,13 +146,23 @@
     .nights-log .d { font-weight: 700; }
     .nights-log .g { color: var(--muted); font-size: 0.9rem; }
 
+    /* Records */
+    .records { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+    .records li {
+      display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: 0.6rem; align-items: center;
+      padding: 0.6rem 0.8rem; border: 1.5px solid var(--rule); border-radius: 12px;
+    }
+    .records .ic { font-size: 1.5rem; text-align: center; }
+    .records .lbl { display: block; color: var(--muted); font-size: 0.85rem; }
+    .records .val { font-weight: 700; }
+
     /* Recent games */
     .log { list-style: none; margin: 0; padding: 0; }
     .log li { padding: 0.45rem 0; border-bottom: 1px dashed var(--rule); }
     .log .w { font-weight: 700; color: var(--c); }
     .log .d { color: var(--muted); font-size: 0.9rem; }
 
-    /* Avatar dialog */
+    /* Dialogs */
     dialog {
       border: 2px solid var(--rule); border-radius: 16px; background: var(--paper); color: var(--ink);
       width: min(24rem, calc(100vw - 32px)); padding: 1.25rem;
@@ -144,15 +175,25 @@
       flex: 1; min-width: 0; min-height: 44px; font: inherit; font-size: 1.2rem; padding: 0.4rem 0.8rem;
       border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--ink);
     }
+    .checks { display: grid; gap: 0.25rem; }
+    .checks label {
+      display: flex; align-items: center; gap: 0.75rem; min-height: 44px; padding: 0 0.5rem;
+      border-bottom: 1px dashed var(--rule); font-family: var(--hand); font-size: 1.4rem; color: var(--c); cursor: pointer;
+    }
+    .checks input { width: 1.3rem; height: 1.3rem; accent-color: var(--p3); }
+    .dlg-row { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
 
     /* Toast */
     .toast {
-      position: fixed; left: 50%; transform: translateX(-50%);
+      position: fixed; left: 50%; transform: translateX(-50%); z-index: 20;
       bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: max-content; max-width: calc(100vw - 32px);
       display: flex; align-items: center; gap: 1rem; padding: 0.6rem 0.75rem 0.6rem 1.1rem;
       border-radius: 999px; background: var(--ink); color: var(--paper); box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     }
     .toast .btn { border-color: var(--paper); color: var(--paper); min-height: 36px; padding: 0.2rem 0.9rem; }
+
+    /* Confetti */
+    #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 
     @media (max-width: 420px) {
       .board::before { left: 2rem; }
@@ -171,12 +212,21 @@
       <p class="status" id="status" role="status"></p>
     </header>
 
+    <div class="champ" id="champ" hidden>
+      <span class="big" aria-hidden="true">🏆</span>
+      <div>
+        <p class="t" id="champTitle"></p>
+        <p class="status" id="champSub"></p>
+      </div>
+    </div>
+
     <div class="notice" id="setup" hidden>
       The scoreboard isn't connected to the Google Sheet yet. Paste the sheet's published CSV links into CONFIG at the bottom of this file.
     </div>
 
     <section class="record" id="record" hidden>
       <h2>Record a win</h2>
+      <p class="roster status"><span id="rosterText"></span> <button type="button" class="btn link" id="rosterBtn">Who's playing tonight?</button></p>
       <div class="win-buttons" id="winButtons"></div>
       <div class="record-foot">
         <span class="status">Tap a player's circle below to set their picture.</span>
@@ -196,6 +246,11 @@
     <section aria-labelledby="overallTitle">
       <h2 id="overallTitle">Overall</h2>
       <ol class="board" id="board" aria-label="Overall standings"></ol>
+    </section>
+
+    <section id="recordsSec" hidden>
+      <h2>Records</h2>
+      <ul class="records" id="records"></ul>
     </section>
 
     <section id="nights" hidden>
@@ -224,17 +279,31 @@
     </form>
   </dialog>
 
+  <dialog id="rosterDialog" aria-labelledby="rosterTitle">
+    <form method="dialog" class="dlg">
+      <h2 id="rosterTitle">Who's playing tonight?</h2>
+      <div class="checks" id="rosterChecks"></div>
+      <div class="dlg-row">
+        <button type="submit" class="btn ghost" value="cancel">Cancel</button>
+        <button type="button" class="btn" id="rosterSave">Save</button>
+      </div>
+      <p class="status" id="rosterMsg" role="status"></p>
+    </form>
+  </dialog>
+
   <div class="toast" id="toast" role="status" hidden>
     <span id="toastMsg"></span>
     <button type="button" class="btn" id="toastUndo">Undo</button>
   </div>
+
+  <canvas id="confetti" aria-hidden="true" hidden></canvas>
 
   <script>
     /* ============================================================
        EDIT THIS BLOCK
        scriptUrl: the Apps Script web app URL (ends in /exec). See
        pushy-dos-apps-script.gs for setup. When set, the page reads live
-       scores and shows "Record a win", Undo and avatar editing.
+       scores and shows "Record a win", Undo, check-in and avatar editing.
        The CSV links are the read-only fallback:
        In the Google Sheet: File → Share → Publish to web.
        Pick the tab, choose "Comma-separated values (.csv)", Publish, copy the link.
@@ -244,14 +313,17 @@
       standingsCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=0&single=true&output=csv",
       gamesCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=1&single=true&output=csv",            // optional: shows recent games when set
       recentShown: 10,
-      refreshSeconds: 60
+      refreshSeconds: 60,
+      nightCutoffHours: 4,  // a game night runs until 4 a.m. (match the Apps Script)
+      undoHours: 3          // undo only works this long after a win (match the Apps Script)
     };
     /* ============================================================ */
 
     const COLORS = ["--p1", "--p2", "--p3", "--p4", "--p5", "--p6", "--p7", "--p8"];
     const $ = (id) => document.getElementById(id);
-    let DATA = null;      // { players: [{name, wins, status, avatar}], games: [{date, winner}], live }
+    let DATA = null;      // { players, games: [{date, winner, ts}], nights: [{night, players}], live }
     let busy = false;
+    let lastSeen = null;  // for celebrations: { king, streakName, streakRun }
 
     // Minimal CSV parser (handles quoted fields, commas and newlines inside quotes)
     function parseCsv(text) {
@@ -287,6 +359,23 @@
       return out;
     }
 
+    /* ---------- Dates & nights ---------- */
+    const ymd = (t) => `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+    // The game night "now" belongs to: before 4 a.m. counts as the night before
+    function tonightKey() { return ymd(new Date(Date.now() - CONFIG.nightCutoffHours * 3600e3)); }
+    function prettyDate(d) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+      if (!m) return d;
+      return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    }
+    function prettyTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+    // "2026-11-07 21:42" from the CSV fallback → epoch ms (local time)
+    function parseStamp(s) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/.exec(s || "");
+      return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime() : null;
+    }
+    const joinNames = (a) => a.join(", ").replace(/, ([^,]*)$/, " and $1");
+
     /* ---------- Loading data ---------- */
     async function fetchCsv(url) {
       const res = await fetch(url, { cache: "no-store" });
@@ -306,11 +395,19 @@
       let list = [];
       if (games && games.length) {
         const g = games[0].map(x => x.trim().toLowerCase());
-        const iDate = g.indexOf("date"), iWin = g.indexOf("winner");
+        const iDate = g.indexOf("date"), iWin = g.indexOf("winner"), iRec = g.indexOf("recorded");
         if (iWin >= 0) list = games.slice(1).filter(r => (r[iWin] || "").trim())
-          .map(r => ({ date: iDate >= 0 ? (r[iDate] || "").trim() : "", winner: r[iWin].trim() }));
+          .map(r => ({
+            date: iDate >= 0 ? (r[iDate] || "").trim() : "",
+            winner: r[iWin].trim(),
+            ts: iRec >= 0 ? parseStamp(r[iRec]) : null
+          }));
       }
-      return { players, games: list, live: false };
+      return { players, games: list, nights: [], live: false };
+    }
+
+    function normalize(d) {
+      return { players: d.players, games: d.games || [], nights: d.nights || [], live: true };
     }
 
     async function getData() {
@@ -318,7 +415,7 @@
         try {
           const res = await fetch(CONFIG.scriptUrl, { cache: "no-store" });
           const d = await res.json();
-          if (d && Array.isArray(d.players)) return { players: d.players, games: d.games || [], live: true };
+          if (d && Array.isArray(d.players)) return normalize(d);
         } catch (e) { /* fall back to the published CSV */ }
       }
       const [standings, games] = await Promise.all([
@@ -333,10 +430,10 @@
       const res = await fetch(CONFIG.scriptUrl, { method: "POST", body: JSON.stringify(req) });
       const out = await res.json();
       if (out.error) throw new Error(out.error);
-      return { players: out.players, games: out.games || [], live: true };
+      return normalize(out);
     }
 
-    /* ---------- Rendering ---------- */
+    /* ---------- Stats ---------- */
     // Streaks from the games list, oldest game first (sheet order)
     function computeStreaks(games) {
       const out = { best: {}, current: null };
@@ -350,16 +447,7 @@
       return out;
     }
 
-    // Game nights: games grouped by date. Night winner = most wins that date (ties share it).
-    function todayKey() {
-      const t = new Date();
-      return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
-    }
-    function prettyDate(d) {
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
-      if (!m) return d;
-      return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
-    }
+    // Game nights: games grouped by date. Night winner = most wins that night (ties share it).
     function computeNights(games) {
       const map = new Map();
       for (const g of games) {
@@ -369,7 +457,7 @@
         n.games++;
         n.wins[g.winner] = (n.wins[g.winner] || 0) + 1;
       }
-      const today = todayKey();
+      const today = tonightKey();
       const nights = [...map.values()];
       for (const n of nights) {
         n.top = Math.max(...Object.values(n.wins));
@@ -378,8 +466,22 @@
       }
       return nights;
     }
-    const joinNames = (a) => a.join(", ").replace(/, ([^,]*)$/, " and $1");
 
+    // Win % only counts nights where people checked in
+    function computePlayed(games, rosters) {
+      const played = {}, won = {};
+      for (const g of games) {
+        const r = rosters[g.date];
+        if (!r) continue;
+        const inGame = new Set(r);
+        inGame.add(g.winner);
+        for (const n of inGame) played[n] = (played[n] || 0) + 1;
+        won[g.winner] = (won[g.winner] || 0) + 1;
+      }
+      return { played, won };
+    }
+
+    /* ---------- Rendering ---------- */
     function isImage(a) { return /^data:image\/(jpeg|png|webp);base64,/.test(a) || /^https:\/\//.test(a); }
 
     function fillAvatar(el, p, crowned) {
@@ -406,32 +508,50 @@
       }
     }
 
+    function canUndo(data) {
+      const last = data && data.games[data.games.length - 1];
+      return !!(last && last.ts && Date.now() - last.ts <= CONFIG.undoHours * 3600e3);
+    }
+
     function render(data) {
       const players = data.players.map((p, i) => ({ ...p, color: `var(${COLORS[i % COLORS.length]})` }));
       const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
+      const rosters = Object.fromEntries(data.nights.map(n => [n.night, n.players]));
+      const tonight = tonightKey();
+      const roster = rosters[tonight] ? new Set(rosters[tonight]) : null;
+      const awayTag = (p) => p.status ? p.status : (roster && !roster.has(p.name) ? "Sitting out" : "");
+      const isAway = (p) => !!awayTag(p);
+
       const streaks = computeStreaks(data.games);
       const nights = computeNights(data.games);
       const nightsWon = {};
       for (const n of nights) if (!n.isToday) for (const w of n.winners) nightsWon[w] = (nightsWon[w] || 0) + 1;
+      const { played, won } = computePlayed(data.games, rosters);
       const sorted = players.slice().sort((a, b) => b.wins - a.wins);
 
       const top = sorted.length ? sorted[0].wins : 0;
       const leaders = sorted.filter(p => p.wins === top);
       const king = top > 0 && leaders.length === 1 ? leaders[0].name : null;
-      const present = sorted.filter(p => !p.status);
+      const present = sorted.filter(p => !isAway(p));
       const bottom = present.length ? present[present.length - 1].wins : 0;
 
+      // Overall board
       const board = $("board");
       board.innerHTML = "";
       let place = 0, prev = null;
       sorted.forEach((p, i) => {
         if (p.wins !== prev) { place = i + 1; prev = p.wins; }
         const li = document.createElement("li");
-        li.className = p.status ? "row away" : "row";
+        li.className = isAway(p) ? "row away" : "row";
         li.style.setProperty("--c", p.color);
         const best = streaks.best[p.name] || 0;
         const cur = streaks.current && streaks.current.name === p.name ? streaks.current.run : 0;
         const chip = top > 0 && p.wins === top ? `<span class="chip">${leaders.length > 1 ? "Tied" : "Leader"}</span>` : "";
+        const stats = [
+          best ? `Best streak: ${best}` : "",
+          nightsWon[p.name] ? `🏆 Nights won: ${nightsWon[p.name]}` : "",
+          played[p.name] ? `Won ${won[p.name] || 0} of ${played[p.name]} (${Math.round(100 * (won[p.name] || 0) / played[p.name])}%)` : ""
+        ].filter(Boolean).join(" · ");
         li.innerHTML = `
           <span class="place" aria-hidden="true">${top > 0 ? place : "–"}</span>
           ${data.live ? `<button type="button" class="av"></button>` : `<span class="av"></span>`}
@@ -441,14 +561,17 @@
               <span class="count">${p.wins} ${p.wins === 1 ? "win" : "wins"}</span>
               ${chip}
               ${cur ? `<span class="hot">🔥 ${cur} in a row</span>` : ""}
-              ${p.status ? `<span class="status-tag"></span>` : ""}
-              ${!p.status && top > bottom && p.wins === bottom ? `<span class="cold" role="img" aria-label="In last place" title="In last place">🥶</span>` : ""}
+              ${isAway(p) ? `<span class="status-tag"></span>` : ""}
+              ${!isAway(p) && top > bottom && p.wins === bottom ? `<span class="cold" role="img" aria-label="In last place" title="In last place">🥶</span>` : ""}
             </div>
-            ${best || nightsWon[p.name] ? `<div class="streak">${[best ? `Best streak: ${best}` : "", nightsWon[p.name] ? `🏆 Nights won: ${nightsWon[p.name]}` : ""].filter(Boolean).join(" · ")}</div>` : ""}
+            ${stats ? `<div class="streak">${stats}</div>` : ""}
             <div class="tallies">${tallies(p.wins)}</div>
           </div>`;
         li.querySelector(".name").textContent = p.name;
-        if (p.status) li.querySelector(".status-tag").textContent = (p.status.toUpperCase() === "MIA" ? "👻 " : "") + p.status;
+        if (isAway(p)) {
+          const t = awayTag(p);
+          li.querySelector(".status-tag").textContent = (t.toUpperCase() === "MIA" ? "👻 " : t === "Sitting out" ? "💤 " : "") + t;
+        }
         const av = li.querySelector(".av");
         fillAvatar(av, p, p.name === king);
         if (data.live) {
@@ -458,6 +581,7 @@
         board.appendChild(li);
       });
 
+      // Summary line
       const total = data.games.length || players.reduce((s, p) => s + p.wins, 0);
       if (total === 0) $("summary").textContent = "No games yet.";
       else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${joinNames(leaders.map(p => p.name))} are tied at ${top}.`;
@@ -465,19 +589,27 @@
       const c = streaks.current;
       if (total > 0 && c) $("summary").textContent += c.run >= 2 ? ` ${c.name} has won ${c.run} in a row.` : ` ${c.name} won the last game.`;
 
-      // Record a win buttons (players who aren't away)
+      // Record a win: tonight's check-in, or everyone not marked MIA
       $("record").hidden = !data.live;
       if (data.live) {
+        const playing = players.filter(p => roster ? roster.has(p.name) : !p.status);
+        $("rosterText").textContent = roster
+          ? (playing.length ? `Playing tonight: ${joinNames(playing.map(p => p.name))}.` : "Nobody checked in yet.")
+          : "";
+        $("rosterBtn").textContent = roster ? "Change" : "Who's playing tonight?";
         const wrap = $("winButtons");
         wrap.innerHTML = "";
-        for (const p of players.filter(p => !p.status)) {
+        for (const p of playing) {
           const b = document.createElement("button");
           b.type = "button"; b.className = "btn"; b.textContent = p.name; b.disabled = busy;
           b.style.setProperty("--c", p.color);
           b.addEventListener("click", () => addWin(p.name));
           wrap.appendChild(b);
         }
-        $("undoBtn").disabled = busy || data.games.length === 0;
+        $("rosterBtn").disabled = busy;
+        const undoOk = canUndo(data);
+        $("undoBtn").disabled = busy || !undoOk;
+        $("undoBtn").title = undoOk ? "" : `Undo works for ${CONFIG.undoHours} hours after a win.`;
       }
 
       // Tonight / latest game night
@@ -490,7 +622,8 @@
         $("nightLead").textContent = latest.isToday
           ? (tied ? `Tied for tonight: ${joinNames(latest.winners)} with ${latest.top} each.` : `🏆 ${latest.winners[0]} is winning tonight.`)
           : (tied ? `🏆 Shared win: ${joinNames(latest.winners)}.` : `🏆 Winner: ${latest.winners[0]}.`);
-        const rows = players.filter(p => latest.wins[p.name] || !p.status)
+        const nightRoster = rosters[latest.date] ? new Set(rosters[latest.date]) : null;
+        const rows = players.filter(p => latest.wins[p.name] || (nightRoster ? nightRoster.has(p.name) : !p.status))
           .map(p => ({ ...p, n: latest.wins[p.name] || 0 }))
           .sort((a, b) => b.n - a.n);
         const list = $("nightList");
@@ -503,6 +636,54 @@
           list.appendChild(li);
         }
       }
+
+      // Champion of the last finished night (shown the day after)
+      const champ = latest && !latest.isToday ? latest : null;
+      $("champ").hidden = !champ;
+      if (champ) {
+        $("champTitle").textContent = champ.winners.length > 1
+          ? `Co-champions: ${joinNames(champ.winners)}`
+          : `Night champion: ${champ.winners[0]}`;
+        $("champSub").textContent = `${prettyDate(champ.date)} · ${champ.top} of ${champ.games} ${champ.games === 1 ? "game" : "games"}`;
+      }
+
+      // Records
+      const recs = [];
+      if (nights.length) {
+        const most = Math.max(...nights.map(n => n.top));
+        const holders = [];
+        for (const n of nights) for (const w of n.winners) if (n.top === most && !holders.includes(w)) holders.push(w);
+        const when = nights.find(n => n.top === most);
+        recs.push(["🎯", "Most wins in one night", `${joinNames(holders)} · ${most} wins${holders.length === 1 ? ` (${prettyDate(when.date)})` : ""}`]);
+      }
+      const bestRun = Math.max(0, ...Object.values(streaks.best));
+      if (bestRun >= 2) {
+        const who = Object.keys(streaks.best).filter(k => streaks.best[k] === bestRun);
+        recs.push(["🔥", "Longest win streak", `${joinNames(who)} · ${bestRun} in a row`]);
+      }
+      const mostNights = Math.max(0, ...Object.values(nightsWon));
+      if (mostNights > 0) {
+        const who = Object.keys(nightsWon).filter(k => nightsWon[k] === mostNights);
+        recs.push(["🏆", "Most nights won", `${joinNames(who)} · ${mostNights}`]);
+      }
+      const pctList = Object.keys(played).filter(k => played[k] >= 5)
+        .map(k => ({ k, pct: (won[k] || 0) / played[k] }));
+      if (pctList.length) {
+        const bestPct = Math.max(...pctList.map(x => x.pct));
+        const who = pctList.filter(x => x.pct === bestPct).map(x => x.k);
+        recs.push(["📈", "Best win rate (5+ games)", `${joinNames(who)} · ${Math.round(bestPct * 100)}%`]);
+      }
+      const rl = $("records");
+      rl.innerHTML = "";
+      for (const [ic, lbl, val] of recs) {
+        const li = document.createElement("li");
+        li.innerHTML = `<span class="ic" aria-hidden="true"></span><span><span class="lbl"></span><span class="val"></span></span>`;
+        li.querySelector(".ic").textContent = ic;
+        li.querySelector(".lbl").textContent = lbl;
+        li.querySelector(".val").textContent = val;
+        rl.appendChild(li);
+      }
+      $("recordsSec").hidden = recs.length === 0;
 
       // Past game nights, newest first
       const past = nights.slice(0, -1).reverse().slice(0, 10);
@@ -528,10 +709,66 @@
         li.style.setProperty("--c", colorOf[g.winner] || "var(--ink)");
         li.innerHTML = `<span class="w"></span> won <span class="d"></span>`;
         li.querySelector(".w").textContent = g.winner;
-        li.querySelector(".d").textContent = g.date ? `· ${g.date}` : "";
+        const when = [g.date ? prettyDate(g.date) : "", g.ts ? prettyTime(g.ts) : ""].filter(Boolean).join(", ");
+        li.querySelector(".d").textContent = when ? `· ${when}` : "";
         log.appendChild(li);
       }
       $("recent").hidden = recent.length === 0;
+
+      return { king, streak: streaks.current, champ };
+    }
+
+    /* ---------- Celebrations ---------- */
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function confetti() {
+      if (reduceMotion) return;
+      const cv = $("confetti");
+      const ctx = cv.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      cv.hidden = false;
+      cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const cols = ["#E6A817", "#2E7D4F", "#1F5FAF", "#B23A3A", "#7A4AA6", "#0F7C86"];
+      const bits = Array.from({ length: 140 }, () => ({
+        x: innerWidth / 2 + (Math.random() - 0.5) * innerWidth * 0.4, y: innerHeight * 0.35,
+        vx: (Math.random() - 0.5) * 9, vy: -Math.random() * 10 - 4,
+        r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3,
+        w: 6 + Math.random() * 6, h: 3 + Math.random() * 4, c: cols[Math.floor(Math.random() * cols.length)]
+      }));
+      const start = performance.now();
+      (function frame(now) {
+        const t = now - start;
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (const b of bits) {
+          b.vy += 0.28; b.vx *= 0.99; b.x += b.vx; b.y += b.vy; b.r += b.vr;
+          ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r);
+          ctx.globalAlpha = Math.max(0, 1 - t / 2600);
+          ctx.fillStyle = b.c; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); ctx.restore();
+        }
+        if (t < 2600) requestAnimationFrame(frame); else { cv.hidden = true; }
+      })(start);
+    }
+
+    function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+
+    function celebrate(state, fromAction) {
+      const prev = lastSeen;
+      lastSeen = { king: state.king, streakName: state.streak && state.streak.name, streakRun: state.streak ? state.streak.run : 0 };
+      // Champion of last night: once per device
+      if (state.champ) {
+        const key = "pd-champ-" + state.champ.date;
+        if (!storeGet(key)) { storeSet(key, "1"); confetti(); }
+      }
+      if (!prev) return; // first load: no surprises
+      if (state.king && state.king !== prev.king) {
+        confetti(); toast(`👑 ${state.king} takes the lead!`, false); return;
+      }
+      const s = state.streak;
+      if (s && s.run >= 3 && (s.name !== prev.streakName || s.run > prev.streakRun)) {
+        confetti(); toast(`🔥 ${s.name} has won ${s.run} in a row!`, fromAction);
+      }
     }
 
     function stamp() {
@@ -545,10 +782,10 @@
         $("summary").textContent = "Not connected yet.";
         return;
       }
-      if (busy || $("avDialog").open) return; // don't redraw mid-action
+      if (busy || $("avDialog").open || $("rosterDialog").open) return; // don't redraw mid-action
       try {
         DATA = await getData();
-        render(DATA);
+        celebrate(render(DATA), false);
         stamp();
       } catch (e) {
         $("status").textContent = "Couldn't load the scores. Check that the sheet is still published to the web.";
@@ -573,14 +810,15 @@
       try {
         DATA = await send(req);
         busy = false;
-        render(DATA);
+        const state = render(DATA);
         stamp();
         if (okMsg) toast(okMsg, withUndo);
+        celebrate(state, withUndo);
         return true;
       } catch (e) {
         busy = false;
         if (DATA) render(DATA);
-        $("status").textContent = `Couldn't save: ${e.message || "network error"}. Try again.`;
+        $("status").textContent = `Couldn't save: ${e.message || "network error"}`;
         return false;
       }
     }
@@ -592,15 +830,44 @@
 
     function undoLast() {
       const last = DATA && DATA.games[DATA.games.length - 1];
-      if (!last) return;
-      if (!confirm(`Remove the last game (${last.winner} won)?`)) return;
+      if (!last || !canUndo(DATA)) return;
+      if (!confirm(`Remove the last game (${last.winner} won at ${prettyTime(last.ts)})?`)) return;
       run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
     }
     $("undoBtn").addEventListener("click", undoLast);
     $("toastUndo").addEventListener("click", () => {
       $("toast").hidden = true;
       const last = DATA && DATA.games[DATA.games.length - 1];
-      if (last) run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
+      if (last && canUndo(DATA)) run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
+    });
+
+    /* ---------- Check-in ---------- */
+    function openRoster() {
+      if (!DATA) return;
+      const rosters = Object.fromEntries(DATA.nights.map(n => [n.night, n.players]));
+      const current = rosters[tonightKey()];
+      const wrap = $("rosterChecks");
+      wrap.innerHTML = "";
+      DATA.players.forEach((p, i) => {
+        const lab = document.createElement("label");
+        lab.style.setProperty("--c", `var(${COLORS[i % COLORS.length]})`);
+        const box = document.createElement("input");
+        box.type = "checkbox"; box.value = p.name;
+        box.checked = current ? current.includes(p.name) : !p.status;
+        lab.appendChild(box);
+        lab.appendChild(document.createTextNode(p.name));
+        wrap.appendChild(lab);
+      });
+      $("rosterMsg").textContent = "";
+      $("rosterDialog").showModal();
+    }
+    $("rosterBtn").addEventListener("click", openRoster);
+    $("rosterSave").addEventListener("click", async () => {
+      const names = [...$("rosterChecks").querySelectorAll("input:checked")].map(b => b.value);
+      $("rosterMsg").textContent = "Saving…";
+      const ok = await run({ action: "checkIn", players: names }, names.length ? `${names.length} playing tonight.` : "Check-in cleared.", false);
+      if (ok) $("rosterDialog").close();
+      else $("rosterMsg").textContent = "Couldn't save. If this keeps happening, the Apps Script may need its new version deployed.";
     });
 
     /* ---------- Avatars ---------- */
