@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#EDE4F7"/>
+  <!-- neck/shoulders -->
+  <path d="M26 128 C28 104 44 94 64 94 C84 94 100 104 102 128 Z" fill="#3E434B"/>
+  <!-- cropped ears -->
+  <path d="M34 40 L28 14 L50 30 Z" fill="#2F333A"/>
+  <path d="M94 40 L100 14 L78 30 Z" fill="#2F333A"/>
+  <path d="M35 34 L32 21 L44 30 Z" fill="#5A4048"/>
+  <path d="M93 34 L96 21 L84 30 Z" fill="#5A4048"/>
+  <!-- broad head -->
+  <path d="M30 52 C30 32 46 24 64 24 C82 24 98 32 98 52 C98 66 94 74 90 80 L38 80 C34 74 30 66 30 52 Z" fill="#4A5059"/>
+  <!-- brow wrinkles -->
+  <path d="M52 38 Q64 33 76 38" stroke="#353A42" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M56 44 Q64 41 72 44" stroke="#353A42" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- eyes -->
+  <ellipse cx="49" cy="53" rx="6" ry="5" fill="#C98A2E"/><circle cx="49" cy="53" r="2.8" fill="#1A1C20"/><circle cx="50" cy="52" r="1" fill="#fff"/>
+  <ellipse cx="79" cy="53" rx="6" ry="5" fill="#C98A2E"/><circle cx="79" cy="53" r="2.8" fill="#1A1C20"/><circle cx="80" cy="52" r="1" fill="#fff"/>
+  <!-- muzzle + droopy jowls -->
+  <path d="M40 66 C40 58 50 56 64 56 C78 56 88 58 88 66 C90 80 84 92 74 94 C70 95 66 92 64 90 C62 92 58 95 54 94 C44 92 38 80 40 66 Z" fill="#2F333A"/>
+  <!-- nose -->
+  <path d="M54 63 C54 58 74 58 74 63 C74 69 68 71 64 71 C60 71 54 69 54 63 Z" fill="#15171A"/>
+  <ellipse cx="60" cy="62" rx="2.5" ry="1.4" fill="#6B7280"/>
+  <!-- mouth line -->
+  <path d="M64 71 V78 M64 78 Q56 86 48 82 M64 78 Q72 86 80 82" stroke="#15171A" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <!-- chest blaze -->
+  <path d="M58 108 Q64 100 70 108 Q66 118 64 122 Q62 118 58 108 Z" fill="#C9CED6"/>
+  <!-- collar -->
+  <path d="M38 100 Q64 112 90 100" stroke="#B23A3A" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="64" cy="110" r="4" fill="#E6A817"/>
+</svg>
