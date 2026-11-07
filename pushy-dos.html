@@ -59,6 +59,7 @@
     }
     .streak { color: var(--muted); font-size: 0.9rem; }
     .hot { font-size: 0.85rem; font-weight: 700; color: var(--c); }
+    .cold { font-size: 1.1rem; line-height: 1; }
     .tallies { display: flex; flex-wrap: wrap; gap: 0.35rem 0.6rem; min-height: 26px; color: var(--c); }
     .tallies svg { width: 34px; height: 26px; display: block; }
     .tallies .none { font-size: 0.9rem; color: var(--muted); }
@@ -183,6 +184,7 @@
 
       const top = players.length ? players[0].wins : 0;
       const leaders = players.filter(p => p.wins === top);
+      const bottom = players.length ? players[players.length - 1].wins : 0;
       const board = $("board");
       board.innerHTML = "";
       let place = 0, prev = null;
@@ -202,6 +204,7 @@
               <span class="count">${p.wins} ${p.wins === 1 ? "win" : "wins"}</span>
               ${chip}
               ${cur ? `<span class="hot">🔥 ${cur} in a row</span>` : ""}
+              ${top > bottom && p.wins === bottom ? `<span class="cold" role="img" aria-label="In last place" title="In last place">🥶</span>` : ""}
             </div>
             ${best ? `<div class="streak">Best streak: ${best}</div>` : ""}
             <div class="tallies">${tallies(p.wins)}</div>
