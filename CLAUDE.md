@@ -9,6 +9,11 @@ Fleet Activities Yokosuka (CFAY), Japan.
   Live URL: https://emmerjason-maker.github.io/johns-lawn-cfay/
 - Custom domain planned later.
 
+## Other pages
+- `pushy-dos.html`: unlisted, read-only family scoreboard for Pushy Dos. It reads
+  the Google Sheet's published CSV links (CONFIG at the bottom of that file).
+  Scores are kept in the Google Sheet, not here. Not linked from the lawn site.
+
 ## Where to edit
 All content lives in the `CONFIG` object near the bottom of `index.html`:
 business name, tagline, email, WhatsApp number (digits only, intl format),
