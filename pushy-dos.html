@@ -104,6 +104,27 @@
     .av.big .av-in { font-size: 3.2rem; }
     .av.big .initial { font-size: 3rem; }
 
+    /* Game nights */
+    .night { display: grid; gap: 0.5rem; }
+    .night h2 { margin: 0; }
+    .night-head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+    .night-head .status { font-size: 1rem; }
+    .night-lead { margin: 0; font-weight: 700; }
+    .night-list { list-style: none; margin: 0; padding: 0; border-top: 1px dashed var(--rule); }
+    .night-list li {
+      display: grid; grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto; gap: 0.75rem; align-items: center;
+      padding: 0.4rem 0; border-bottom: 1px dashed var(--rule);
+    }
+    .night-list .nm { font-family: var(--hand); font-size: 1.35rem; line-height: 1.1; color: var(--c); }
+    .night-list .tallies { min-height: 22px; }
+    .night-list .tallies svg { width: 28px; height: 22px; }
+    .night-list .n { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .nights-log { list-style: none; margin: 0; padding: 0; }
+    .nights-log li { padding: 0.45rem 0; border-bottom: 1px dashed var(--rule); }
+    .nights-log .w { font-weight: 700; color: var(--c); }
+    .nights-log .d { font-weight: 700; }
+    .nights-log .g { color: var(--muted); font-size: 0.9rem; }
+
     /* Recent games */
     .log { list-style: none; margin: 0; padding: 0; }
     .log li { padding: 0.45rem 0; border-bottom: 1px dashed var(--rule); }
@@ -163,7 +184,24 @@
       </div>
     </section>
 
-    <ol class="board" id="board" aria-label="Standings"></ol>
+    <section class="night" id="night" hidden aria-labelledby="nightTitle">
+      <div class="night-head">
+        <h2 id="nightTitle">Tonight</h2>
+        <span class="status" id="nightDate"></span>
+      </div>
+      <p class="night-lead" id="nightLead"></p>
+      <ul class="night-list" id="nightList"></ul>
+    </section>
+
+    <section aria-labelledby="overallTitle">
+      <h2 id="overallTitle">Overall</h2>
+      <ol class="board" id="board" aria-label="Overall standings"></ol>
+    </section>
+
+    <section id="nights" hidden>
+      <h2>Past game nights</h2>
+      <ul class="nights-log" id="nightsLog"></ul>
+    </section>
 
     <section id="recent" hidden>
       <h2>Recent games</h2>
@@ -312,6 +350,36 @@
       return out;
     }
 
+    // Game nights: games grouped by date. Night winner = most wins that date (ties share it).
+    function todayKey() {
+      const t = new Date();
+      return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+    }
+    function prettyDate(d) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+      if (!m) return d;
+      return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    }
+    function computeNights(games) {
+      const map = new Map();
+      for (const g of games) {
+        const k = (g.date || "").trim() || "Undated";
+        if (!map.has(k)) map.set(k, { date: k, games: 0, wins: {} });
+        const n = map.get(k);
+        n.games++;
+        n.wins[g.winner] = (n.wins[g.winner] || 0) + 1;
+      }
+      const today = todayKey();
+      const nights = [...map.values()];
+      for (const n of nights) {
+        n.top = Math.max(...Object.values(n.wins));
+        n.winners = Object.keys(n.wins).filter(k => n.wins[k] === n.top);
+        n.isToday = n.date === today;
+      }
+      return nights;
+    }
+    const joinNames = (a) => a.join(", ").replace(/, ([^,]*)$/, " and $1");
+
     function isImage(a) { return /^data:image\/(jpeg|png|webp);base64,/.test(a) || /^https:\/\//.test(a); }
 
     function fillAvatar(el, p, crowned) {
@@ -342,6 +410,9 @@
       const players = data.players.map((p, i) => ({ ...p, color: `var(${COLORS[i % COLORS.length]})` }));
       const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
       const streaks = computeStreaks(data.games);
+      const nights = computeNights(data.games);
+      const nightsWon = {};
+      for (const n of nights) if (!n.isToday) for (const w of n.winners) nightsWon[w] = (nightsWon[w] || 0) + 1;
       const sorted = players.slice().sort((a, b) => b.wins - a.wins);
 
       const top = sorted.length ? sorted[0].wins : 0;
@@ -373,7 +444,7 @@
               ${p.status ? `<span class="status-tag"></span>` : ""}
               ${!p.status && top > bottom && p.wins === bottom ? `<span class="cold" role="img" aria-label="In last place" title="In last place">🥶</span>` : ""}
             </div>
-            ${best ? `<div class="streak">Best streak: ${best}</div>` : ""}
+            ${best || nightsWon[p.name] ? `<div class="streak">${[best ? `Best streak: ${best}` : "", nightsWon[p.name] ? `🏆 Nights won: ${nightsWon[p.name]}` : ""].filter(Boolean).join(" · ")}</div>` : ""}
             <div class="tallies">${tallies(p.wins)}</div>
           </div>`;
         li.querySelector(".name").textContent = p.name;
@@ -389,7 +460,7 @@
 
       const total = data.games.length || players.reduce((s, p) => s + p.wins, 0);
       if (total === 0) $("summary").textContent = "No games yet.";
-      else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders.map(p => p.name).join(", ").replace(/, ([^,]*)$/, " and $1")} are tied at ${top}.`;
+      else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${joinNames(leaders.map(p => p.name))} are tied at ${top}.`;
       else $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. 👑 ${leaders[0].name} leads by ${top - (sorted[1] ? sorted[1].wins : 0)}.`;
       const c = streaks.current;
       if (total > 0 && c) $("summary").textContent += c.run >= 2 ? ` ${c.name} has won ${c.run} in a row.` : ` ${c.name} won the last game.`;
@@ -408,6 +479,45 @@
         }
         $("undoBtn").disabled = busy || data.games.length === 0;
       }
+
+      // Tonight / latest game night
+      const latest = nights[nights.length - 1];
+      $("night").hidden = !latest;
+      if (latest) {
+        $("nightTitle").textContent = latest.isToday ? "Tonight" : "Last game night";
+        $("nightDate").textContent = `${prettyDate(latest.date)} · ${latest.games} ${latest.games === 1 ? "game" : "games"}`;
+        const tied = latest.winners.length > 1;
+        $("nightLead").textContent = latest.isToday
+          ? (tied ? `Tied for tonight: ${joinNames(latest.winners)} with ${latest.top} each.` : `🏆 ${latest.winners[0]} is winning tonight.`)
+          : (tied ? `🏆 Shared win: ${joinNames(latest.winners)}.` : `🏆 Winner: ${latest.winners[0]}.`);
+        const rows = players.filter(p => latest.wins[p.name] || !p.status)
+          .map(p => ({ ...p, n: latest.wins[p.name] || 0 }))
+          .sort((a, b) => b.n - a.n);
+        const list = $("nightList");
+        list.innerHTML = "";
+        for (const p of rows) {
+          const li = document.createElement("li");
+          li.style.setProperty("--c", p.color);
+          li.innerHTML = `<span class="nm"></span><span class="tallies">${p.n ? tallies(p.n) : ""}</span><span class="n">${p.n ? p.n : "–"}${p.n && p.n === latest.top ? " 🏆" : ""}</span>`;
+          li.querySelector(".nm").textContent = p.name;
+          list.appendChild(li);
+        }
+      }
+
+      // Past game nights, newest first
+      const past = nights.slice(0, -1).reverse().slice(0, 10);
+      const nl = $("nightsLog");
+      nl.innerHTML = "";
+      for (const n of past) {
+        const li = document.createElement("li");
+        li.style.setProperty("--c", n.winners.length === 1 ? (colorOf[n.winners[0]] || "var(--ink)") : "var(--ink)");
+        li.innerHTML = `<span class="d"></span> · 🏆 <span class="w"></span> <span class="g"></span>`;
+        li.querySelector(".d").textContent = prettyDate(n.date);
+        li.querySelector(".w").textContent = joinNames(n.winners);
+        li.querySelector(".g").textContent = `(${n.top} of ${n.games} ${n.games === 1 ? "game" : "games"})`;
+        nl.appendChild(li);
+      }
+      $("nights").hidden = past.length === 0;
 
       // Recent games
       const recent = data.games.slice().reverse().slice(0, CONFIG.recentShown);
