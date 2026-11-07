@@ -194,7 +194,7 @@
         li.className = "row";
         li.style.setProperty("--c", p.color);
         const best = streaks.best[p.name] || 0;
-        const cur = streaks.current && streaks.current.name === p.name && streaks.current.run >= 2 ? streaks.current.run : 0;
+        const cur = streaks.current && streaks.current.name === p.name ? streaks.current.run : 0;
         const chip = top > 0 && p.wins === top ? `<span class="chip">${leaders.length > 1 ? "Tied" : "Leader"}</span>` : "";
         li.innerHTML = `
           <span class="place" aria-hidden="true">${top > 0 ? place : "–"}</span>
@@ -215,10 +215,10 @@
 
       const total = players.reduce((s, p) => s + p.wins, 0);
       if (total === 0) $("summary").textContent = "No games yet.";
-      else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders.map(p => p.name).join(" and ")} are tied at ${top}.`;
+      else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders.map(p => p.name).join(", ").replace(/, ([^,]*)$/, " and $1")} are tied at ${top}.`;
       else $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders[0].name} leads by ${top - (players[1] ? players[1].wins : 0)}.`;
       const c = streaks.current;
-      if (total > 0 && c && c.run >= 2) $("summary").textContent += ` ${c.name} has won ${c.run} in a row.`;
+      if (total > 0 && c) $("summary").textContent += c.run >= 2 ? ` ${c.name} has won ${c.run} in a row.` : ` ${c.name} won the last game.`;
       return colorOf;
     }
 
