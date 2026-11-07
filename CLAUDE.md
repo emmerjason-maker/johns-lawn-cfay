@@ -10,9 +10,12 @@ Fleet Activities Yokosuka (CFAY), Japan.
 - Custom domain planned later.
 
 ## Other pages
-- `pushy-dos.html`: unlisted, read-only family scoreboard for Pushy Dos. It reads
-  the Google Sheet's published CSV links (CONFIG at the bottom of that file).
-  Scores are kept in the Google Sheet, not here. Not linked from the lawn site.
+- `pushy-dos.html`: unlisted family scoreboard for Pushy Dos. Scores live in the
+  Google Sheet, not here. Not linked from the lawn site. CONFIG at the bottom:
+  `scriptUrl` (Apps Script web app) enables live reads, "Record a win", undo and
+  avatar editing; the published CSV links are the read-only fallback.
+- `pushy-dos-apps-script.gs`: the Apps Script pasted into the Google Sheet
+  (Extensions → Apps Script) and deployed as a web app. Not served by the site.
 
 ## Where to edit
 All content lives in the `CONFIG` object near the bottom of `index.html`:

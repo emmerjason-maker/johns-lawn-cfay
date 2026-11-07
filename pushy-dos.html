@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    /* Legal-pad score sheet (chalkboard in dark mode), read-only, fed by the Google Sheet */
+    /* Legal-pad score sheet (chalkboard in dark mode), fed by the Google Sheet */
     :root {
       --paper: #FBF5D3; --rule: #B9CDE6; --margin: #E07A7A; --ink: #22303F; --muted: #5E6878; --lead: #DDEFD9;
       --p1: #1F5FAF; --p2: #B23A3A; --p3: #2E7D4F; --p4: #7A4AA6; --p5: #B8640F; --p6: #0F7C86; --p7: #A63A7A; --p8: #5A6B1F;
@@ -31,7 +31,7 @@
     body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.5; }
     .sheet {
       max-width: 40rem; margin: 0 auto; display: grid; gap: 2rem;
-      padding-block: 2rem 4rem;
+      padding-block: 2rem 6rem;
       padding-left: max(16px, env(safe-area-inset-left, 0px));
       padding-right: max(16px, env(safe-area-inset-right, 0px));
     }
@@ -42,14 +42,32 @@
     .status { font-size: 0.9rem; }
     .notice { background: var(--lead); border-radius: 12px; padding: 0.9rem 1rem; }
 
+    /* Buttons */
+    .btn {
+      font: inherit; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      min-height: 44px; padding: 0.5rem 1rem; border-radius: 999px; border: 2px solid var(--ink); background: transparent; color: var(--ink);
+    }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+    .btn:focus-visible, .av:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
+    .btn.ghost { border-color: var(--rule); font-weight: 400; }
+    .btn.link { border: 0; min-height: 0; padding: 0.25rem 0; text-decoration: underline; font-weight: 400; color: var(--muted); }
+
+    /* Record a win */
+    .record { display: grid; gap: 0.6rem; }
+    .record h2 { margin: 0; }
+    .win-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .win-buttons .btn { border-color: var(--c); color: var(--c); font-family: var(--hand); font-size: 1.3rem; font-weight: 400; }
+    .record-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+    /* Standings */
     .board { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--rule); position: relative; }
     .board::before { content: ""; position: absolute; top: 0; bottom: 0; left: 2.6rem; border-left: 2px solid var(--margin); }
     .row {
-      display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 0 0.9rem; align-items: center;
-      padding: 0.8rem 0; border-bottom: 2px solid var(--rule);
+      display: grid; grid-template-columns: 2.6rem 52px minmax(0, 1fr); gap: 0 0.8rem; align-items: center;
+      padding: 1rem 0 0.8rem; border-bottom: 2px solid var(--rule);
     }
     .place { font-family: var(--hand); font-size: 1.4rem; color: var(--muted); text-align: center; padding-right: 0.5rem; }
-    .who { min-width: 0; display: grid; gap: 0.15rem; padding-left: 0.4rem; }
+    .who { min-width: 0; display: grid; gap: 0.15rem; }
     .line { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
     .name { font-family: var(--hand); font-size: 1.7rem; line-height: 1.1; color: var(--c); }
     .count { font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -61,19 +79,65 @@
     .hot { font-size: 0.85rem; font-weight: 700; color: var(--c); }
     .cold { font-size: 1.1rem; line-height: 1; }
     .status-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--muted); color: var(--paper); }
-    .row.away .name, .row.away .tallies { opacity: 0.55; }
+    .row.away .name, .row.away .tallies, .row.away .av-in { opacity: 0.55; }
     .tallies { display: flex; flex-wrap: wrap; gap: 0.35rem 0.6rem; min-height: 26px; color: var(--c); }
     .tallies svg { width: 34px; height: 26px; display: block; }
     .tallies .none { font-size: 0.9rem; color: var(--muted); }
 
+    /* Avatars + crown */
+    .av {
+      position: relative; width: 52px; height: 52px; padding: 0; border: 0; background: none; color: inherit; font: inherit;
+      border-radius: 50%; cursor: default;
+    }
+    button.av { cursor: pointer; }
+    .av-in {
+      width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+      border: 2.5px solid var(--c); background: var(--lead); font-size: 1.7rem; line-height: 1;
+    }
+    .av-in img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .av-in .initial { font-family: var(--hand); font-size: 1.6rem; color: var(--c); }
+    .crown {
+      position: absolute; top: -0.95rem; left: 50%; transform: translateX(-50%) rotate(-10deg);
+      font-size: 1.35rem; line-height: 1; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.25)); pointer-events: none;
+    }
+    .av.big { width: 96px; height: 96px; justify-self: center; }
+    .av.big .av-in { font-size: 3.2rem; }
+    .av.big .initial { font-size: 3rem; }
+
+    /* Recent games */
     .log { list-style: none; margin: 0; padding: 0; }
     .log li { padding: 0.45rem 0; border-bottom: 1px dashed var(--rule); }
     .log .w { font-weight: 700; color: var(--c); }
     .log .d { color: var(--muted); font-size: 0.9rem; }
 
+    /* Avatar dialog */
+    dialog {
+      border: 2px solid var(--rule); border-radius: 16px; background: var(--paper); color: var(--ink);
+      width: min(24rem, calc(100vw - 32px)); padding: 1.25rem;
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+    .dlg { display: grid; gap: 0.75rem; margin: 0; }
+    .dlg h2 { text-align: center; margin: 0; }
+    .emoji-row { display: flex; gap: 0.5rem; }
+    .emoji-row input {
+      flex: 1; min-width: 0; min-height: 44px; font: inherit; font-size: 1.2rem; padding: 0.4rem 0.8rem;
+      border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--ink);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: max-content; max-width: calc(100vw - 32px);
+      display: flex; align-items: center; gap: 1rem; padding: 0.6rem 0.75rem 0.6rem 1.1rem;
+      border-radius: 999px; background: var(--ink); color: var(--paper); box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    .toast .btn { border-color: var(--paper); color: var(--paper); min-height: 36px; padding: 0.2rem 0.9rem; }
+
     @media (max-width: 420px) {
       .board::before { left: 2rem; }
-      .row { grid-template-columns: 2rem minmax(0, 1fr); gap: 0 0.6rem; }
+      .row { grid-template-columns: 2rem 44px minmax(0, 1fr); gap: 0 0.6rem; }
+      .av { width: 44px; height: 44px; }
+      .av-in { font-size: 1.4rem; }
       .name { font-size: 1.5rem; }
     }
   </style>
@@ -90,6 +154,15 @@
       The scoreboard isn't connected to the Google Sheet yet. Paste the sheet's published CSV links into CONFIG at the bottom of this file.
     </div>
 
+    <section class="record" id="record" hidden>
+      <h2>Record a win</h2>
+      <div class="win-buttons" id="winButtons"></div>
+      <div class="record-foot">
+        <span class="status">Tap a player's circle below to set their picture.</span>
+        <button type="button" class="btn link" id="undoBtn">Undo last game</button>
+      </div>
+    </section>
+
     <ol class="board" id="board" aria-label="Standings"></ol>
 
     <section id="recent" hidden>
@@ -98,14 +171,38 @@
     </section>
   </main>
 
+  <dialog id="avDialog" aria-labelledby="avTitle">
+    <form method="dialog" class="dlg">
+      <h2 id="avTitle">Avatar</h2>
+      <div class="av big" id="avPreview"></div>
+      <label class="btn">Choose a photo<input type="file" id="avFile" accept="image/*" hidden /></label>
+      <div class="emoji-row">
+        <input id="avEmoji" maxlength="16" placeholder="Or type an emoji" aria-label="Emoji" autocomplete="off" />
+        <button type="button" class="btn" id="avEmojiSave">Use</button>
+      </div>
+      <button type="button" class="btn ghost" id="avRemove">Remove picture</button>
+      <button type="submit" class="btn ghost" value="cancel">Close</button>
+      <p class="status" id="avMsg" role="status"></p>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden>
+    <span id="toastMsg"></span>
+    <button type="button" class="btn" id="toastUndo">Undo</button>
+  </div>
+
   <script>
     /* ============================================================
        EDIT THIS BLOCK
+       scriptUrl: the Apps Script web app URL (ends in /exec). See
+       pushy-dos-apps-script.gs for setup. When set, the page reads live
+       scores and shows "Record a win", Undo and avatar editing.
+       The CSV links are the read-only fallback:
        In the Google Sheet: File → Share → Publish to web.
        Pick the tab, choose "Comma-separated values (.csv)", Publish, copy the link.
-       Do it once for Standings and once for Games.
        ============================================================ */
     const CONFIG = {
+      scriptUrl: "",
       standingsCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=0&single=true&output=csv",
       gamesCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=1&single=true&output=csv",            // optional: shows recent games when set
       recentShown: 10,
@@ -115,6 +212,8 @@
 
     const COLORS = ["--p1", "--p2", "--p3", "--p4", "--p5", "--p6", "--p7", "--p8"];
     const $ = (id) => document.getElementById(id);
+    let DATA = null;      // { players: [{name, wins, status, avatar}], games: [{date, winner}], live }
+    let busy = false;
 
     // Minimal CSV parser (handles quoted fields, commas and newlines inside quotes)
     function parseCsv(text) {
@@ -150,48 +249,111 @@
       return out;
     }
 
+    /* ---------- Loading data ---------- */
     async function fetchCsv(url) {
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error(res.status);
       return parseCsv(await res.text());
     }
 
-    // Streaks from the Games tab, oldest game first (sheet order)
-    function computeStreaks(rows) {
+    function fromCsv(standings, games) {
+      const h = standings[0].map(x => x.trim().toLowerCase());
+      const iName = h.indexOf("player"), iWins = h.indexOf("wins"), iStatus = h.indexOf("status"), iAv = h.indexOf("avatar");
+      if (iName < 0 || iWins < 0) throw new Error("columns");
+      const players = standings.slice(1).map(r => ({
+        name: (r[iName] || "").trim(), wins: num(r[iWins]),
+        status: iStatus >= 0 ? (r[iStatus] || "").trim() : "",
+        avatar: iAv >= 0 ? (r[iAv] || "").trim() : ""
+      })).filter(p => p.name);
+      let list = [];
+      if (games && games.length) {
+        const g = games[0].map(x => x.trim().toLowerCase());
+        const iDate = g.indexOf("date"), iWin = g.indexOf("winner");
+        if (iWin >= 0) list = games.slice(1).filter(r => (r[iWin] || "").trim())
+          .map(r => ({ date: iDate >= 0 ? (r[iDate] || "").trim() : "", winner: r[iWin].trim() }));
+      }
+      return { players, games: list, live: false };
+    }
+
+    async function getData() {
+      if (CONFIG.scriptUrl) {
+        try {
+          const res = await fetch(CONFIG.scriptUrl, { cache: "no-store" });
+          const d = await res.json();
+          if (d && Array.isArray(d.players)) return { players: d.players, games: d.games || [], live: true };
+        } catch (e) { /* fall back to the published CSV */ }
+      }
+      const [standings, games] = await Promise.all([
+        fetchCsv(CONFIG.standingsCsv),
+        CONFIG.gamesCsv ? fetchCsv(CONFIG.gamesCsv).catch(() => null) : null
+      ]);
+      return fromCsv(standings, games);
+    }
+
+    async function send(req) {
+      // text/plain body keeps this a "simple" request (no CORS preflight) for Apps Script
+      const res = await fetch(CONFIG.scriptUrl, { method: "POST", body: JSON.stringify(req) });
+      const out = await res.json();
+      if (out.error) throw new Error(out.error);
+      return { players: out.players, games: out.games || [], live: true };
+    }
+
+    /* ---------- Rendering ---------- */
+    // Streaks from the games list, oldest game first (sheet order)
+    function computeStreaks(games) {
       const out = { best: {}, current: null };
-      if (!rows || !rows.length) return out;
-      const iWin = rows[0].map(h => h.trim().toLowerCase()).indexOf("winner");
-      if (iWin < 0) return out;
       let name = null, run = 0;
-      for (const r of rows.slice(1)) {
-        const w = (r[iWin] || "").trim();
-        if (!w) continue;
-        run = w === name ? run + 1 : 1;
-        name = w;
-        out.best[w] = Math.max(out.best[w] || 0, run);
+      for (const g of games) {
+        run = g.winner === name ? run + 1 : 1;
+        name = g.winner;
+        out.best[name] = Math.max(out.best[name] || 0, run);
       }
       if (name) out.current = { name, run };
       return out;
     }
 
-    function renderStandings(rows, streaks) {
-      const head = rows[0].map(h => h.trim().toLowerCase());
-      const iName = head.indexOf("player"), iWins = head.indexOf("wins"), iStatus = head.indexOf("status");
-      if (iName < 0 || iWins < 0) throw new Error("columns");
-      const players = rows.slice(1)
-        .map((r, i) => ({ name: (r[iName] || "").trim(), wins: num(r[iWins]), status: iStatus >= 0 ? (r[iStatus] || "").trim() : "", color: `var(${COLORS[i % COLORS.length]})` }))
-        .filter(p => p.name);
-      const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
-      players.sort((a, b) => b.wins - a.wins);
+    function isImage(a) { return /^data:image\/(jpeg|png|webp);base64,/.test(a) || /^https:\/\//.test(a); }
 
-      const top = players.length ? players[0].wins : 0;
-      const leaders = players.filter(p => p.wins === top);
-      const present = players.filter(p => !p.status);
+    function fillAvatar(el, p, crowned) {
+      el.textContent = "";
+      const inner = document.createElement("span");
+      inner.className = "av-in";
+      if (p.avatar && isImage(p.avatar)) {
+        const img = document.createElement("img");
+        img.src = p.avatar; img.alt = ""; img.loading = "lazy";
+        inner.appendChild(img);
+      } else if (p.avatar) {
+        inner.textContent = p.avatar;
+      } else {
+        const s = document.createElement("span");
+        s.className = "initial";
+        s.textContent = p.name.charAt(0).toUpperCase();
+        inner.appendChild(s);
+      }
+      el.appendChild(inner);
+      if (crowned) {
+        const c = document.createElement("span");
+        c.className = "crown"; c.setAttribute("aria-hidden", "true"); c.textContent = "👑";
+        el.appendChild(c);
+      }
+    }
+
+    function render(data) {
+      const players = data.players.map((p, i) => ({ ...p, color: `var(${COLORS[i % COLORS.length]})` }));
+      const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
+      const streaks = computeStreaks(data.games);
+      const sorted = players.slice().sort((a, b) => b.wins - a.wins);
+
+      const top = sorted.length ? sorted[0].wins : 0;
+      const leaders = sorted.filter(p => p.wins === top);
+      const king = top > 0 && leaders.length === 1 ? leaders[0].name : null;
+      const present = sorted.filter(p => !p.status);
       const bottom = present.length ? present[present.length - 1].wins : 0;
+
       const board = $("board");
       board.innerHTML = "";
       let place = 0, prev = null;
-      players.forEach((p, i) => {
+      sorted.forEach((p, i) => {
         if (p.wins !== prev) { place = i + 1; prev = p.wins; }
         const li = document.createElement("li");
         li.className = p.status ? "row away" : "row";
@@ -201,6 +363,7 @@
         const chip = top > 0 && p.wins === top ? `<span class="chip">${leaders.length > 1 ? "Tied" : "Leader"}</span>` : "";
         li.innerHTML = `
           <span class="place" aria-hidden="true">${top > 0 ? place : "–"}</span>
+          ${data.live ? `<button type="button" class="av"></button>` : `<span class="av"></span>`}
           <div class="who">
             <div class="line">
               <span class="name"></span>
@@ -215,55 +378,172 @@
           </div>`;
         li.querySelector(".name").textContent = p.name;
         if (p.status) li.querySelector(".status-tag").textContent = (p.status.toUpperCase() === "MIA" ? "👻 " : "") + p.status;
+        const av = li.querySelector(".av");
+        fillAvatar(av, p, p.name === king);
+        if (data.live) {
+          av.setAttribute("aria-label", `Change ${p.name}'s picture`);
+          av.addEventListener("click", () => openAvatar(p));
+        }
         board.appendChild(li);
       });
 
-      const total = players.reduce((s, p) => s + p.wins, 0);
+      const total = data.games.length || players.reduce((s, p) => s + p.wins, 0);
       if (total === 0) $("summary").textContent = "No games yet.";
       else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders.map(p => p.name).join(", ").replace(/, ([^,]*)$/, " and $1")} are tied at ${top}.`;
-      else $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders[0].name} leads by ${top - (players[1] ? players[1].wins : 0)}.`;
+      else $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. 👑 ${leaders[0].name} leads by ${top - (sorted[1] ? sorted[1].wins : 0)}.`;
       const c = streaks.current;
       if (total > 0 && c) $("summary").textContent += c.run >= 2 ? ` ${c.name} has won ${c.run} in a row.` : ` ${c.name} won the last game.`;
-      return colorOf;
-    }
 
-    function renderGames(rows, colorOf) {
-      const head = rows[0].map(h => h.trim().toLowerCase());
-      const iDate = head.indexOf("date"), iWin = head.indexOf("winner");
-      if (iWin < 0) return;
-      const games = rows.slice(1).filter(r => (r[iWin] || "").trim()).reverse().slice(0, CONFIG.recentShown);
+      // Record a win buttons (players who aren't away)
+      $("record").hidden = !data.live;
+      if (data.live) {
+        const wrap = $("winButtons");
+        wrap.innerHTML = "";
+        for (const p of players.filter(p => !p.status)) {
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "btn"; b.textContent = p.name; b.disabled = busy;
+          b.style.setProperty("--c", p.color);
+          b.addEventListener("click", () => addWin(p.name));
+          wrap.appendChild(b);
+        }
+        $("undoBtn").disabled = busy || data.games.length === 0;
+      }
+
+      // Recent games
+      const recent = data.games.slice().reverse().slice(0, CONFIG.recentShown);
       const log = $("log");
       log.innerHTML = "";
-      for (const r of games) {
-        const name = r[iWin].trim();
+      for (const g of recent) {
         const li = document.createElement("li");
-        li.style.setProperty("--c", colorOf[name] || "var(--ink)");
+        li.style.setProperty("--c", colorOf[g.winner] || "var(--ink)");
         li.innerHTML = `<span class="w"></span> won <span class="d"></span>`;
-        li.querySelector(".w").textContent = name;
-        li.querySelector(".d").textContent = iDate >= 0 && r[iDate] ? `· ${r[iDate]}` : "";
+        li.querySelector(".w").textContent = g.winner;
+        li.querySelector(".d").textContent = g.date ? `· ${g.date}` : "";
         log.appendChild(li);
       }
-      $("recent").hidden = games.length === 0;
+      $("recent").hidden = recent.length === 0;
+    }
+
+    function stamp() {
+      const t = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      $("status").textContent = DATA.live ? `Updated ${t}.` : `Updated ${t}. Sheet changes can take a few minutes to show here.`;
     }
 
     async function load() {
-      if (!CONFIG.standingsCsv) {
+      if (!CONFIG.standingsCsv && !CONFIG.scriptUrl) {
         $("setup").hidden = false;
         $("summary").textContent = "Not connected yet.";
         return;
       }
+      if (busy || $("avDialog").open) return; // don't redraw mid-action
       try {
-        const [standings, games] = await Promise.all([
-          fetchCsv(CONFIG.standingsCsv),
-          CONFIG.gamesCsv ? fetchCsv(CONFIG.gamesCsv).catch(() => null) : null
-        ]);
-        const colorOf = renderStandings(standings, computeStreaks(games));
-        if (games) renderGames(games, colorOf);
-        $("status").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Sheet changes can take a few minutes to show here.`;
+        DATA = await getData();
+        render(DATA);
+        stamp();
       } catch (e) {
         $("status").textContent = "Couldn't load the scores. Check that the sheet is still published to the web.";
       }
     }
+
+    /* ---------- Writing ---------- */
+    let toastTimer = null;
+    function toast(msg, withUndo) {
+      $("toastMsg").textContent = msg;
+      $("toastUndo").hidden = !withUndo;
+      $("toast").hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { $("toast").hidden = true; }, 6000);
+    }
+
+    async function run(req, okMsg, withUndo) {
+      if (busy) return false;
+      busy = true;
+      if (DATA) render(DATA);
+      $("status").textContent = "Saving…";
+      try {
+        DATA = await send(req);
+        busy = false;
+        render(DATA);
+        stamp();
+        if (okMsg) toast(okMsg, withUndo);
+        return true;
+      } catch (e) {
+        busy = false;
+        if (DATA) render(DATA);
+        $("status").textContent = `Couldn't save: ${e.message || "network error"}. Try again.`;
+        return false;
+      }
+    }
+
+    function addWin(name) {
+      if (!confirm(`Add a win for ${name}?`)) return;
+      run({ action: "addWin", winner: name }, `Win added for ${name}.`, true);
+    }
+
+    function undoLast() {
+      const last = DATA && DATA.games[DATA.games.length - 1];
+      if (!last) return;
+      if (!confirm(`Remove the last game (${last.winner} won)?`)) return;
+      run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
+    }
+    $("undoBtn").addEventListener("click", undoLast);
+    $("toastUndo").addEventListener("click", () => {
+      $("toast").hidden = true;
+      const last = DATA && DATA.games[DATA.games.length - 1];
+      if (last) run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
+    });
+
+    /* ---------- Avatars ---------- */
+    let avPlayer = null;
+    function openAvatar(p) {
+      avPlayer = p;
+      $("avTitle").textContent = `${p.name}'s picture`;
+      $("avPreview").style.setProperty("--c", p.color);
+      fillAvatar($("avPreview"), p, false);
+      $("avEmoji").value = p.avatar && !isImage(p.avatar) ? p.avatar : "";
+      $("avMsg").textContent = "";
+      $("avRemove").hidden = !p.avatar;
+      $("avDialog").showModal();
+    }
+
+    async function saveAvatar(value) {
+      $("avMsg").textContent = "Saving…";
+      const ok = await run({ action: "setAvatar", player: avPlayer.name, avatar: value });
+      if (ok) $("avDialog").close();
+      else $("avMsg").textContent = "Couldn't save that picture. Try again.";
+    }
+
+    // Center-crop and shrink a photo to a small square JPEG so it fits in one sheet cell
+    async function fileToAvatar(file) {
+      const url = URL.createObjectURL(file);
+      try {
+        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+        const s = Math.min(img.naturalWidth, img.naturalHeight);
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        c.getContext("2d").drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, 128, 128);
+        return c.toDataURL("image/jpeg", 0.82);
+      } finally { URL.revokeObjectURL(url); }
+    }
+
+    $("avFile").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      try {
+        const dataUrl = await fileToAvatar(file);
+        fillAvatar($("avPreview"), { ...avPlayer, avatar: dataUrl }, false);
+        await saveAvatar(dataUrl);
+      } catch (err) {
+        $("avMsg").textContent = "That photo couldn't be read. Try a different one.";
+      }
+    });
+    $("avEmojiSave").addEventListener("click", () => {
+      const v = $("avEmoji").value.trim();
+      if (!v) { $("avMsg").textContent = "Type an emoji first."; return; }
+      saveAvatar(v);
+    });
+    $("avRemove").addEventListener("click", () => saveAvatar(""));
 
     load();
     setInterval(load, CONFIG.refreshSeconds * 1000);
