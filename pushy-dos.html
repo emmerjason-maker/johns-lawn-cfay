@@ -229,8 +229,12 @@
       <p class="roster status"><span id="rosterText"></span> <button type="button" class="btn link" id="rosterBtn">Who's playing tonight?</button></p>
       <div class="win-buttons" id="winButtons"></div>
       <div class="record-foot">
-        <span class="status">Tap a player's circle below to set their picture.</span>
-        <button type="button" class="btn link" id="undoBtn">Undo last game</button>
+        <span class="status">Tap a player's circle below for their picture or MIA.</span>
+        <span>
+          <button type="button" class="btn link" id="addPlayerBtn">＋ Add player</button>
+          &nbsp;·&nbsp;
+          <button type="button" class="btn link" id="undoBtn">Undo last game</button>
+        </span>
       </div>
     </section>
 
@@ -274,6 +278,7 @@
         <button type="button" class="btn" id="avEmojiSave">Use</button>
       </div>
       <button type="button" class="btn ghost" id="avRemove">Remove picture</button>
+      <button type="button" class="btn ghost" id="avMia">👻 Mark MIA</button>
       <button type="submit" class="btn ghost" value="cancel">Close</button>
       <p class="status" id="avMsg" role="status"></p>
     </form>
@@ -607,6 +612,7 @@
           wrap.appendChild(b);
         }
         $("rosterBtn").disabled = busy;
+        $("addPlayerBtn").disabled = busy;
         const undoOk = canUndo(data);
         $("undoBtn").disabled = busy || !undoOk;
         $("undoBtn").title = undoOk ? "" : `Undo works for ${CONFIG.undoHours} hours after a win.`;
@@ -880,6 +886,7 @@
       $("avEmoji").value = p.avatar && !isImage(p.avatar) ? p.avatar : "";
       $("avMsg").textContent = "";
       $("avRemove").hidden = !p.avatar;
+      $("avMia").textContent = p.status ? `🙌 ${p.name} is back` : `👻 Mark ${p.name} MIA`;
       $("avDialog").showModal();
     }
 
@@ -921,6 +928,21 @@
       saveAvatar(v);
     });
     $("avRemove").addEventListener("click", () => saveAvatar(""));
+    $("avMia").addEventListener("click", async () => {
+      const goingMia = !avPlayer.status;
+      $("avMsg").textContent = "Saving…";
+      const ok = await run({ action: "setStatus", player: avPlayer.name, status: goingMia ? "MIA" : "" },
+        goingMia ? `👻 ${avPlayer.name} is MIA.` : `🙌 ${avPlayer.name} is back.`, false);
+      if (ok) $("avDialog").close();
+      else $("avMsg").textContent = "Couldn't save. Try again.";
+    });
+
+    /* ---------- Add a player ---------- */
+    $("addPlayerBtn").addEventListener("click", () => {
+      const name = (prompt("New player's name?") || "").trim();
+      if (!name) return;
+      run({ action: "addPlayer", name }, `${name} added. Tap their circle to give them a picture.`, false);
+    });
 
     load();
     setInterval(load, CONFIG.refreshSeconds * 1000);

@@ -2,8 +2,8 @@
  * Pushy Dos Scoreboard: Google Apps Script web app
  *
  * Lets pushy-dos.html read the scores live and write back to the Google Sheet:
- * record a win, undo the last game, set a player's avatar, and check in
- * who's playing tonight.
+ * record a win, undo the last game, set a player's avatar, check in
+ * who's playing tonight, add a player, and mark a player MIA or back.
  *
  * SETUP (once):
  * 1. Open the "Pushy Dos Scoreboard" Google Sheet.
@@ -60,6 +60,22 @@ function doPost(e) {
       const col = headerIndex_(STANDINGS, "avatar");
       if (col < 0) return json_({ error: "The Standings tab has no Avatar column." });
       ss_().getSheetByName(STANDINGS).getRange(p.row, col + 1).setValue(cleanAvatar_(req.avatar));
+    } else if (req.action === "addPlayer") {
+      const name = cleanName_(req.name);
+      if (names.some(n => n.toLowerCase() === name.toLowerCase())) return json_({ error: name + " is already on the scoreboard." });
+      const sh = ss_().getSheetByName(STANDINGS);
+      const col = sh.getRange(2, 1, MAX_PLAYERS, 1).getDisplayValues();
+      let row = -1;
+      for (let i = 0; i < col.length; i++) if (!String(col[i][0]).trim()) { row = i + 2; break; }
+      if (row < 0) return json_({ error: "The scoreboard is full (" + MAX_PLAYERS + " players)." });
+      sh.getRange(row, 1).setValue(name);
+    } else if (req.action === "setStatus") {
+      const p = players.filter(x => x.name === req.player)[0];
+      if (!p) return json_({ error: "Unknown player." });
+      const col = headerIndex_(STANDINGS, "status");
+      if (col < 0) return json_({ error: "The Standings tab has no Status column." });
+      const status = String(req.status || "").trim().toUpperCase() === "MIA" ? "MIA" : "";
+      ss_().getSheetByName(STANDINGS).getRange(p.row, col + 1).setValue(status);
     } else if (req.action === "checkIn") {
       const list = (Array.isArray(req.players) ? req.players : []).filter(n => names.indexOf(n) >= 0);
       const sh = nightsSheet_();
@@ -163,6 +179,15 @@ function headerIndex_(tab, name) {
   const sh = ss_().getSheetByName(tab);
   return sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0]
     .map(h => String(h).trim().toLowerCase()).indexOf(name);
+}
+
+// Player names: 1 to 20 characters, no formulas or markup
+function cleanName_(n) {
+  n = String(n || "").trim().replace(/\s+/g, " ");
+  if (!n || n.length > 20 || /^[=+\-@]/.test(n) || /[<>,]/.test(n)) {
+    throw new Error("Use a name of 1 to 20 letters (no commas).");
+  }
+  return n;
 }
 
 // Allowed avatars: small photo (data URL), https image link, or a short emoji/text
