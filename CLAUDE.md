@@ -16,6 +16,8 @@ Fleet Activities Yokosuka (CFAY), Japan.
   avatar editing; the published CSV links are the read-only fallback.
 - `pushy-dos-apps-script.gs`: the Apps Script pasted into the Google Sheet
   (Extensions → Apps Script) and deployed as a web app. Not served by the site.
+- `pushy-dos-avatars/`: illustrated player pictures (SVG). The sheet's Avatar
+  column links to them by their GitHub Pages URL.
 
 ## Where to edit
 All content lives in the `CONFIG` object near the bottom of `index.html`:
