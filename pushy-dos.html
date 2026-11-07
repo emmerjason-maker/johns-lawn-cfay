@@ -214,7 +214,7 @@
             <div class="tallies">${tallies(p.wins)}</div>
           </div>`;
         li.querySelector(".name").textContent = p.name;
-        if (p.status) li.querySelector(".status-tag").textContent = p.status;
+        if (p.status) li.querySelector(".status-tag").textContent = (p.status.toUpperCase() === "MIA" ? "👻 " : "") + p.status;
         board.appendChild(li);
       });
 
