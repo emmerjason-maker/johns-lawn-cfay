@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#F6E7C8"/>
+  <!-- pot -->
+  <path d="M38 98 h52 l-6 28 h-40 z" fill="#C8643B"/>
+  <rect x="34" y="92" width="60" height="10" rx="3" fill="#A94F2C"/>
+  <!-- stem + leaves -->
+  <path d="M64 94 C60 82 70 76 64 64" stroke="#2F7A3A" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M63 84 C48 86 40 78 38 70 C50 70 58 74 63 84 z" fill="#3E9A48"/>
+  <path d="M65 80 C80 82 88 74 92 66 C78 66 70 70 65 80 z" fill="#3E9A48"/>
+  <!-- pod head: upper jaw -->
+  <path d="M22 50 C22 22 50 10 72 14 C96 18 110 34 106 52 C90 44 40 44 22 50 z" fill="#4CAF50"/>
+  <!-- mouth inside -->
+  <path d="M22 50 C40 44 90 44 106 52 C100 62 86 70 64 70 C42 70 26 62 22 50 z" fill="#B3263A"/>
+  <!-- lower jaw -->
+  <path d="M24 56 C36 66 52 72 64 72 C80 72 96 66 104 56 C102 70 86 80 64 80 C42 80 26 70 24 56 z" fill="#3E9A48"/>
+  <!-- tongue -->
+  <path d="M52 66 C56 58 72 58 76 66 C70 70 58 70 52 66 z" fill="#E0596B"/>
+  <!-- teeth -->
+  <g fill="#FFFFFF">
+    <path d="M30 49 l4 8 l4 -9 z"/><path d="M42 47 l4 9 l4 -9 z"/><path d="M54 46 l4 9 l4 -9 z"/>
+    <path d="M66 46 l4 9 l4 -9 z"/><path d="M78 47 l4 9 l4 -9 z"/><path d="M90 48 l4 8 l4 -7 z"/>
+    <path d="M36 64 l3 -7 l4 8 z"/><path d="M80 65 l4 -8 l3 7 z"/>
+  </g>
+  <!-- spots + lip line -->
+  <g fill="#7CCB6F"><circle cx="48" cy="26" r="4"/><circle cx="70" cy="22" r="3"/><circle cx="88" cy="32" r="3.5"/><circle cx="36" cy="36" r="3"/></g>
+  <path d="M22 50 C40 44 90 44 106 52" stroke="#2F7A3A" stroke-width="3" fill="none"/>
+</svg>

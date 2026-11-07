@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#FCE3D6"/>
+  <g transform="translate(4 14) scale(0.86)">
+  <!-- waves -->
+  <g fill="none" stroke="#5B8FD6" stroke-width="3" stroke-linecap="round">
+    <path d="M0 112 q10 -10 20 0 q10 -10 20 0 q10 -10 20 0 q10 -10 20 0 q10 -10 20 0 q10 -10 20 0 q10 -10 20 0"/>
+  </g>
+  <!-- serpentine body -->
+  <path d="M10 100 C24 70 50 96 64 80 C76 66 66 52 80 46" stroke="#2E9E6A" stroke-width="16" fill="none" stroke-linecap="round"/>
+  <path d="M10 100 C24 70 50 96 64 80 C76 66 66 52 80 46" stroke="#F4C542" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="3 6"/>
+  <!-- back spikes -->
+  <g fill="#D7443E"><path d="M20 80 l2 -10 l6 8 z"/><path d="M38 84 l4 -9 l4 9 z"/><path d="M58 74 l6 -8 l2 10 z"/></g>
+  <!-- head -->
+  <path d="M70 30 C80 18 104 18 112 32 C120 44 114 58 100 60 L78 60 C68 58 64 42 70 30 Z" fill="#2E9E6A"/>
+  <!-- snout -->
+  <path d="M96 40 C110 38 124 42 124 50 C124 58 110 60 98 58 Z" fill="#3CB878"/>
+  <path d="M100 54 Q112 56 122 52" stroke="#1F6B47" stroke-width="2" fill="none"/>
+  <circle cx="117" cy="45" r="1.8" fill="#1F6B47"/>
+  <!-- horns -->
+  <path d="M78 26 C74 14 70 10 62 8 C70 14 72 20 74 30 Z" fill="#F4C542"/>
+  <path d="M90 22 C90 10 88 6 82 2 C88 10 86 16 86 24 Z" fill="#F4C542"/>
+  <!-- mane -->
+  <g fill="#D7443E"><path d="M70 34 l-12 -2 l8 8 z"/><path d="M68 44 l-14 2 l10 6 z"/><path d="M72 54 l-12 8 l12 0 z"/></g>
+  <!-- eye -->
+  <ellipse cx="94" cy="36" rx="7" ry="6" fill="#FFFFFF"/>
+  <circle cx="96" cy="36" r="3.5" fill="#22303F"/><circle cx="97" cy="35" r="1.2" fill="#FFFFFF"/>
+  <path d="M86 28 Q94 24 102 30" stroke="#1F6B47" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- whiskers -->
+  <g stroke="#F4C542" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <path d="M110 58 C112 72 104 80 96 82"/>
+    <path d="M104 60 C100 74 88 76 84 70"/>
+  </g>
+  <!-- tiny flame -->
+  <path d="M124 46 c-2 -6 2 -10 4 -12 c-1 4 0 8 -4 12 z" fill="#F08A24"/>
+  </g>
+</svg>
