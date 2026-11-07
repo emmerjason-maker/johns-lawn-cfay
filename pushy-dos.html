@@ -57,6 +57,8 @@
       font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
       padding: 0.1rem 0.5rem; border-radius: 999px; border: 1.5px solid var(--c); color: var(--c);
     }
+    .streak { color: var(--muted); font-size: 0.9rem; }
+    .hot { font-size: 0.85rem; font-weight: 700; color: var(--c); }
     .tallies { display: flex; flex-wrap: wrap; gap: 0.35rem 0.6rem; min-height: 26px; color: var(--c); }
     .tallies svg { width: 34px; height: 26px; display: block; }
     .tallies .none { font-size: 0.9rem; color: var(--muted); }
@@ -151,7 +153,25 @@
       return parseCsv(await res.text());
     }
 
-    function renderStandings(rows) {
+    // Streaks from the Games tab, oldest game first (sheet order)
+    function computeStreaks(rows) {
+      const out = { best: {}, current: null };
+      if (!rows || !rows.length) return out;
+      const iWin = rows[0].map(h => h.trim().toLowerCase()).indexOf("winner");
+      if (iWin < 0) return out;
+      let name = null, run = 0;
+      for (const r of rows.slice(1)) {
+        const w = (r[iWin] || "").trim();
+        if (!w) continue;
+        run = w === name ? run + 1 : 1;
+        name = w;
+        out.best[w] = Math.max(out.best[w] || 0, run);
+      }
+      if (name) out.current = { name, run };
+      return out;
+    }
+
+    function renderStandings(rows, streaks) {
       const head = rows[0].map(h => h.trim().toLowerCase());
       const iName = head.indexOf("player"), iWins = head.indexOf("wins");
       if (iName < 0 || iWins < 0) throw new Error("columns");
@@ -171,6 +191,8 @@
         const li = document.createElement("li");
         li.className = "row";
         li.style.setProperty("--c", p.color);
+        const best = streaks.best[p.name] || 0;
+        const cur = streaks.current && streaks.current.name === p.name && streaks.current.run >= 2 ? streaks.current.run : 0;
         const chip = top > 0 && p.wins === top ? `<span class="chip">${leaders.length > 1 ? "Tied" : "Leader"}</span>` : "";
         li.innerHTML = `
           <span class="place" aria-hidden="true">${top > 0 ? place : "–"}</span>
@@ -179,7 +201,9 @@
               <span class="name"></span>
               <span class="count">${p.wins} ${p.wins === 1 ? "win" : "wins"}</span>
               ${chip}
+              ${cur ? `<span class="hot">🔥 ${cur} in a row</span>` : ""}
             </div>
+            ${best ? `<div class="streak">Best streak: ${best}</div>` : ""}
             <div class="tallies">${tallies(p.wins)}</div>
           </div>`;
         li.querySelector(".name").textContent = p.name;
@@ -190,6 +214,8 @@
       if (total === 0) $("summary").textContent = "No games yet.";
       else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders.map(p => p.name).join(" and ")} are tied at ${top}.`;
       else $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${leaders[0].name} leads by ${top - (players[1] ? players[1].wins : 0)}.`;
+      const c = streaks.current;
+      if (total > 0 && c && c.run >= 2) $("summary").textContent += ` ${c.name} has won ${c.run} in a row.`;
       return colorOf;
     }
 
@@ -219,8 +245,12 @@
         return;
       }
       try {
-        const colorOf = renderStandings(await fetchCsv(CONFIG.standingsCsv));
-        if (CONFIG.gamesCsv) renderGames(await fetchCsv(CONFIG.gamesCsv), colorOf);
+        const [standings, games] = await Promise.all([
+          fetchCsv(CONFIG.standingsCsv),
+          CONFIG.gamesCsv ? fetchCsv(CONFIG.gamesCsv).catch(() => null) : null
+        ]);
+        const colorOf = renderStandings(standings, computeStreaks(games));
+        if (games) renderGames(games, colorOf);
         $("status").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Sheet changes can take a few minutes to show here.`;
       } catch (e) {
         $("status").textContent = "Couldn't load the scores. Check that the sheet is still published to the web.";
