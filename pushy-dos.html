@@ -53,7 +53,6 @@
     .line { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
     .name { font-family: var(--hand); font-size: 1.7rem; line-height: 1.1; color: var(--c); }
     .count { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .pts { color: var(--muted); font-variant-numeric: tabular-nums; }
     .chip {
       font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
       padding: 0.1rem 0.5rem; border-radius: 999px; border: 1.5px solid var(--c); color: var(--c);
@@ -154,13 +153,13 @@
 
     function renderStandings(rows) {
       const head = rows[0].map(h => h.trim().toLowerCase());
-      const iName = head.indexOf("player"), iWins = head.indexOf("wins"), iPts = head.indexOf("points");
+      const iName = head.indexOf("player"), iWins = head.indexOf("wins");
       if (iName < 0 || iWins < 0) throw new Error("columns");
       const players = rows.slice(1)
-        .map((r, i) => ({ name: (r[iName] || "").trim(), wins: num(r[iWins]), points: iPts >= 0 ? num(r[iPts]) : 0, color: `var(${COLORS[i % COLORS.length]})` }))
+        .map((r, i) => ({ name: (r[iName] || "").trim(), wins: num(r[iWins]), color: `var(${COLORS[i % COLORS.length]})` }))
         .filter(p => p.name);
       const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
-      players.sort((a, b) => b.wins - a.wins || b.points - a.points);
+      players.sort((a, b) => b.wins - a.wins);
 
       const top = players.length ? players[0].wins : 0;
       const leaders = players.filter(p => p.wins === top);
@@ -179,7 +178,6 @@
             <div class="line">
               <span class="name"></span>
               <span class="count">${p.wins} ${p.wins === 1 ? "win" : "wins"}</span>
-              <span class="pts">${p.points.toLocaleString()} pts</span>
               ${chip}
             </div>
             <div class="tallies">${tallies(p.wins)}</div>
@@ -197,7 +195,7 @@
 
     function renderGames(rows, colorOf) {
       const head = rows[0].map(h => h.trim().toLowerCase());
-      const iDate = head.indexOf("date"), iWin = head.indexOf("winner"), iPts = head.indexOf("points");
+      const iDate = head.indexOf("date"), iWin = head.indexOf("winner");
       if (iWin < 0) return;
       const games = rows.slice(1).filter(r => (r[iWin] || "").trim()).reverse().slice(0, CONFIG.recentShown);
       const log = $("log");
@@ -206,9 +204,8 @@
         const name = r[iWin].trim();
         const li = document.createElement("li");
         li.style.setProperty("--c", colorOf[name] || "var(--ink)");
-        li.innerHTML = `<span class="w"></span> won · <span class="pts"></span> <span class="d"></span>`;
+        li.innerHTML = `<span class="w"></span> won <span class="d"></span>`;
         li.querySelector(".w").textContent = name;
-        li.querySelector(".pts").textContent = `${num(iPts >= 0 ? r[iPts] : 0).toLocaleString()} pts`;
         li.querySelector(".d").textContent = iDate >= 0 && r[iDate] ? `· ${r[iDate]}` : "";
         log.appendChild(li);
       }
