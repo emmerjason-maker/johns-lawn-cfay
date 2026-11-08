@@ -1037,8 +1037,34 @@
       run({ action: "addPlayer", name }, `${name} added. Tap their circle to give them a picture.`, false);
     });
 
+    /* ---------- Stay up to date (home screen app) ----------
+       A home screen app can keep showing an old copy of this page. When the app
+       is opened or comes back on screen, compare this page's Last-Modified time
+       with the live one and reload if the site has a newer version. */
+    async function checkForUpdate() {
+      try {
+        const res = await fetch(location.pathname, { method: "HEAD", cache: "no-store" });
+        const live = Date.parse(res.headers.get("Last-Modified") || "");
+        const mine = Date.parse(document.lastModified);
+        if (!live || !mine || live <= mine) return;
+        const key = "pd-reloaded-" + live;
+        if (sessionStorage.getItem(key)) return; // already tried once for this version
+        sessionStorage.setItem(key, "1");
+        location.replace(location.pathname + "?v=" + live);
+      } catch (e) { /* offline or storage blocked: keep going with this copy */ }
+    }
+    function onResume() {
+      if (document.visibilityState !== "visible") return;
+      checkForUpdate();
+      load(); // fresh scores right away
+    }
+    document.addEventListener("visibilitychange", onResume);
+    window.addEventListener("pageshow", (e) => { if (e.persisted) onResume(); });
+
+    checkForUpdate();
     load();
     setInterval(load, CONFIG.refreshSeconds * 1000);
+    setInterval(checkForUpdate, 5 * 60 * 1000);
   </script>
 </body>
 </html>
