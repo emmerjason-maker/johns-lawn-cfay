@@ -219,10 +219,15 @@
 <body>
   <main class="sheet">
     <header>
-      <h1 id="title">Pushy Dos Scoreboard</h1>
+      <h1 id="title">Game Night Scoreboard</h1>
       <p class="sub" id="summary">Loading scores…</p>
       <p class="status" id="status" role="status"></p>
-      <div class="game-tabs" id="gameTabs" role="group" aria-label="Choose a game"></div>
+      <div class="game-tabs" id="gameTabs" role="group" aria-label="Choose a game">
+        <!-- shown while loading; replaced once the scores arrive -->
+        <button type="button" aria-pressed="true">All games</button>
+        <button type="button" aria-pressed="false">Pushy Dos</button>
+        <button type="button" aria-pressed="false">Rummikub</button>
+      </div>
     </header>
 
     <div class="champ" id="champ" hidden>
