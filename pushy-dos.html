@@ -191,6 +191,8 @@
     }
     .checks input { width: 1.3rem; height: 1.3rem; accent-color: var(--p3); }
     .dlg-row { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+    .pick-list { display: grid; gap: 0.5rem; }
+    .pick-list .btn { font-family: var(--hand); font-size: 1.4rem; font-weight: 400; min-height: 52px; }
 
     /* Toast */
     .toast {
@@ -306,6 +308,14 @@
     </form>
   </dialog>
 
+  <dialog id="pickDialog" aria-labelledby="pickTitle">
+    <form method="dialog" class="dlg">
+      <h2 id="pickTitle">Which game?</h2>
+      <div class="pick-list" id="pickList"></div>
+      <button type="submit" class="btn ghost" value="cancel">Cancel</button>
+    </form>
+  </dialog>
+
   <div class="toast" id="toast" role="status" hidden>
     <span id="toastMsg"></span>
     <button type="button" class="btn" id="toastUndo">Undo</button>
@@ -342,7 +352,7 @@
     let lastSeen = null;  // for celebrations: { king, streakName, streakRun }
     const ALL = "All games";
     const gameOf = (g) => (g.game || "").trim() || CONFIG.games[0];
-    let currentGame = storeGet("pd-game") || CONFIG.games[0];
+    let currentGame = storeGet("pd-game") || ALL; // first visit opens the combined view
     if (currentGame !== ALL && !CONFIG.games.includes(currentGame)) currentGame = CONFIG.games[0];
     function gameList(data) {
       const list = CONFIG.games.slice();
@@ -643,8 +653,7 @@
         $("rosterBtn").textContent = roster ? "Change" : "Who's playing tonight?";
         const wrap = $("winButtons");
         wrap.innerHTML = "";
-        if (currentGame === ALL) wrap.innerHTML = `<p class="status">Pick a game above to record a win.</p>`;
-        else for (const p of playing) {
+        for (const p of playing) {
           const b = document.createElement("button");
           b.type = "button"; b.className = "btn"; b.textContent = p.name; b.disabled = busy;
           b.style.setProperty("--c", p.color);
@@ -829,7 +838,7 @@
         $("summary").textContent = "Not connected yet.";
         return;
       }
-      if (busy || $("avDialog").open || $("rosterDialog").open) return; // don't redraw mid-action
+      if (busy || $("avDialog").open || $("rosterDialog").open || $("pickDialog").open) return; // don't redraw mid-action
       try {
         DATA = await getData();
         celebrate(render(DATA), false);
@@ -870,10 +879,28 @@
       }
     }
 
+    function recordWin(name, game) {
+      run({ action: "addWin", winner: name, game }, `${game} win added for ${name}.`, true);
+    }
+
     function addWin(name) {
-      if (currentGame === ALL) return;
+      if (currentGame === ALL) return pickGame(name); // picking the game is the confirmation
       if (!confirm(`Add a ${currentGame} win for ${name}?`)) return;
-      run({ action: "addWin", winner: name, game: currentGame }, `${currentGame} win added for ${name}.`, true);
+      recordWin(name, currentGame);
+    }
+
+    // "Which game?" picker for wins recorded from the All games tab
+    function pickGame(name) {
+      $("pickTitle").textContent = `Which game did ${name} win?`;
+      const list = $("pickList");
+      list.innerHTML = "";
+      for (const game of gameList(DATA)) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "btn"; b.textContent = game;
+        b.addEventListener("click", () => { $("pickDialog").close(); recordWin(name, game); });
+        list.appendChild(b);
+      }
+      $("pickDialog").showModal();
     }
 
     function switchGame(name) {
