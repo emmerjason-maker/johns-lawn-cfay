@@ -4,6 +4,7 @@
  * Lets pushy-dos.html read the scores live and write back to the Google Sheet:
  * record a win, undo the last game, set a player's avatar, check in
  * who's playing tonight, add a player, and mark a player MIA or back.
+ * Wins are recorded per game (Pushy Dos, Rummikub, ...).
  *
  * SETUP (once):
  * 1. Open the "Pushy Dos Scoreboard" Google Sheet.
@@ -19,7 +20,8 @@
  */
 
 const STANDINGS = "Standings";
-const GAMES = "Games";        // A: Date (game night), B: Winner, C: Recorded (time entered)
+const GAMES = "Games";        // A: Date (game night), B: Winner, C: Recorded (time entered), D: Game
+const DEFAULT_GAME = "Pushy Dos"; // a blank Game cell means this game
 const NIGHTS = "Nights";      // A: Night, B: Players (comma-separated). Created automatically.
 const MAX_PLAYERS = 10;       // Standings rows 2 to 11
 const NIGHT_CUTOFF_HOURS = 4; // a game night runs until 4 a.m.
@@ -42,8 +44,9 @@ function doPost(e) {
       if (names.indexOf(req.winner) < 0) return json_({ error: "Unknown player." });
       const row = lastGameRow_(games) + 1;
       const now = new Date();
-      games.getRange(row, 3).clearDataValidations();
-      games.getRange(row, 1, 1, 3).setValues([[nightKey_(now), req.winner, now]]);
+      const game = cleanGame_(req.game);
+      games.getRange(row, 3, 1, 2).clearDataValidations();
+      games.getRange(row, 1, 1, 4).setValues([[nightKey_(now), req.winner, now, game]]);
       games.getRange(row, 1).setNumberFormat("yyyy-mm-dd");
       games.getRange(row, 3).setNumberFormat("yyyy-mm-dd hh:mm");
     } else if (req.action === "undo") {
@@ -53,7 +56,7 @@ function doPost(e) {
       if (!(t instanceof Date) || Date.now() - t.getTime() > UNDO_HOURS * 3600 * 1000) {
         return json_({ error: "Undo only works for " + UNDO_HOURS + " hours after a win. To fix an older game, edit the Games tab in the sheet." });
       }
-      games.getRange(row, 1, 1, 3).clearContent();
+      games.getRange(row, 1, 1, 4).clearContent();
     } else if (req.action === "setAvatar") {
       const p = players.filter(x => x.name === req.player)[0];
       if (!p) return json_({ error: "Unknown player." });
@@ -129,14 +132,19 @@ function readGames_() {
   const sh = ss_().getSheetByName(GAMES);
   const last = lastGameRow_(sh);
   if (last < 2) return [];
-  const disp = sh.getRange(2, 1, last - 1, 2).getDisplayValues();
+  const disp = sh.getRange(2, 1, last - 1, 4).getDisplayValues();
   const raw = sh.getRange(2, 3, last - 1, 1).getValues();
   const out = [];
   for (let i = 0; i < disp.length; i++) {
     const winner = String(disp[i][1]).trim();
     if (!winner) continue;
     const t = raw[i][0];
-    out.push({ date: String(disp[i][0]).trim(), winner: winner, ts: t instanceof Date ? t.getTime() : null });
+    out.push({
+      date: String(disp[i][0]).trim(),
+      winner: winner,
+      ts: t instanceof Date ? t.getTime() : null,
+      game: String(disp[i][3]).trim() || DEFAULT_GAME
+    });
   }
   return out;
 }
@@ -188,6 +196,14 @@ function cleanName_(n) {
     throw new Error("Use a name of 1 to 20 letters (no commas).");
   }
   return n;
+}
+
+// Game names: up to 30 characters, no formulas or markup; blank means the default game
+function cleanGame_(g) {
+  g = String(g || "").trim().replace(/\s+/g, " ");
+  if (!g) return DEFAULT_GAME;
+  if (g.length > 30 || /^[=+\-@]/.test(g) || /[<>]/.test(g)) throw new Error("That game name isn't allowed.");
+  return g;
 }
 
 // Allowed avatars: small photo (data URL), https image link, or a short emoji/text

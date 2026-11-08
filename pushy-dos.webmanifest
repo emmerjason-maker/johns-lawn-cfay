@@ -1,6 +1,6 @@
 {
-  "name": "Pushy Dos Scoreboard",
-  "short_name": "Pushy Dos",
+  "name": "Game Night Scoreboard",
+  "short_name": "Game Night",
   "start_url": "pushy-dos.html",
   "display": "standalone",
   "background_color": "#FBF5D3",

@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="robots" content="noindex" />
-  <title>Pushy Dos Scoreboard</title>
+  <title>Game Night Scoreboard</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
   <!-- Home screen app -->
   <link rel="manifest" href="pushy-dos.webmanifest" />
   <link rel="apple-touch-icon" href="pushy-dos-icon-180.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="Pushy Dos" />
+  <meta name="apple-mobile-web-app-title" content="Game Night" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#FBF5D3" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#1E2A24" media="(prefers-color-scheme: dark)" />
@@ -52,6 +52,15 @@
     .sub, .status { margin: 0; color: var(--muted); }
     .status { font-size: 0.9rem; }
     .notice { background: var(--lead); border-radius: 12px; padding: 0.9rem 1rem; }
+
+    /* Game tabs */
+    .game-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .game-tabs button {
+      font: inherit; font-family: var(--hand); font-size: 1.25rem; cursor: pointer; min-height: 44px;
+      padding: 0.3rem 1rem; border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--muted);
+    }
+    .game-tabs button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+    .game-tabs button:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
 
     /* Night champion banner */
     .champ {
@@ -207,9 +216,10 @@
 <body>
   <main class="sheet">
     <header>
-      <h1>Pushy Dos Scoreboard</h1>
+      <h1 id="title">Pushy Dos Scoreboard</h1>
       <p class="sub" id="summary">Loading scores…</p>
       <p class="status" id="status" role="status"></p>
+      <div class="game-tabs" id="gameTabs" role="group" aria-label="Choose a game"></div>
     </header>
 
     <div class="champ" id="champ" hidden>
@@ -319,6 +329,7 @@
       gamesCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=1&single=true&output=csv",            // optional: shows recent games when set
       recentShown: 10,
       refreshSeconds: 60,
+      games: ["Pushy Dos", "Rummikub"], // add a game here to give it its own tab; the first is the default
       nightCutoffHours: 4,  // a game night runs until 4 a.m. (match the Apps Script)
       undoHours: 3          // undo only works this long after a win (match the Apps Script)
     };
@@ -329,6 +340,15 @@
     let DATA = null;      // { players, games: [{date, winner, ts}], nights: [{night, players}], live }
     let busy = false;
     let lastSeen = null;  // for celebrations: { king, streakName, streakRun }
+    const ALL = "All games";
+    const gameOf = (g) => (g.game || "").trim() || CONFIG.games[0];
+    let currentGame = storeGet("pd-game") || CONFIG.games[0];
+    if (currentGame !== ALL && !CONFIG.games.includes(currentGame)) currentGame = CONFIG.games[0];
+    function gameList(data) {
+      const list = CONFIG.games.slice();
+      for (const g of (data ? data.games : [])) if (!list.includes(gameOf(g))) list.push(gameOf(g));
+      return list;
+    }
 
     // Minimal CSV parser (handles quoted fields, commas and newlines inside quotes)
     function parseCsv(text) {
@@ -400,12 +420,13 @@
       let list = [];
       if (games && games.length) {
         const g = games[0].map(x => x.trim().toLowerCase());
-        const iDate = g.indexOf("date"), iWin = g.indexOf("winner"), iRec = g.indexOf("recorded");
+        const iDate = g.indexOf("date"), iWin = g.indexOf("winner"), iRec = g.indexOf("recorded"), iGame = g.indexOf("game");
         if (iWin >= 0) list = games.slice(1).filter(r => (r[iWin] || "").trim())
           .map(r => ({
             date: iDate >= 0 ? (r[iDate] || "").trim() : "",
             winner: r[iWin].trim(),
-            ts: iRec >= 0 ? parseStamp(r[iRec]) : null
+            ts: iRec >= 0 ? parseStamp(r[iRec]) : null,
+            game: iGame >= 0 ? (r[iGame] || "").trim() : ""
           }));
       }
       return { players, games: list, nights: [], live: false };
@@ -519,7 +540,25 @@
     }
 
     function render(data) {
-      const players = data.players.map((p, i) => ({ ...p, color: `var(${COLORS[i % COLORS.length]})` }));
+      // Which game we're looking at: one game, or all of them together
+      const games = currentGame === ALL ? data.games : data.games.filter(g => gameOf(g) === currentGame);
+      const winsOf = {};
+      for (const g of games) winsOf[g.winner] = (winsOf[g.winner] || 0) + 1;
+      const players = data.players.map((p, i) => ({ ...p, wins: winsOf[p.name] || 0, color: `var(${COLORS[i % COLORS.length]})` }));
+
+      // Title + game tabs
+      const label = currentGame === ALL ? "Game Night" : currentGame;
+      $("title").textContent = `${label} Scoreboard`;
+      document.title = `${label} Scoreboard`;
+      const tabs = $("gameTabs");
+      tabs.innerHTML = "";
+      for (const name of [...gameList(data), ALL]) {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = name;
+        b.setAttribute("aria-pressed", String(name === currentGame));
+        b.addEventListener("click", () => switchGame(name));
+        tabs.appendChild(b);
+      }
       const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
       const rosters = Object.fromEntries(data.nights.map(n => [n.night, n.players]));
       const tonight = tonightKey();
@@ -527,11 +566,11 @@
       const awayTag = (p) => p.status ? p.status : (roster && !roster.has(p.name) ? "Sitting out" : "");
       const isAway = (p) => !!awayTag(p);
 
-      const streaks = computeStreaks(data.games);
-      const nights = computeNights(data.games);
+      const streaks = computeStreaks(games);
+      const nights = computeNights(games);
       const nightsWon = {};
       for (const n of nights) if (!n.isToday) for (const w of n.winners) nightsWon[w] = (nightsWon[w] || 0) + 1;
-      const { played, won } = computePlayed(data.games, rosters);
+      const { played, won } = computePlayed(games, rosters);
       const sorted = players.slice().sort((a, b) => b.wins - a.wins);
 
       const top = sorted.length ? sorted[0].wins : 0;
@@ -587,7 +626,7 @@
       });
 
       // Summary line
-      const total = data.games.length || players.reduce((s, p) => s + p.wins, 0);
+      const total = games.length;
       if (total === 0) $("summary").textContent = "No games yet.";
       else if (leaders.length > 1) $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. ${joinNames(leaders.map(p => p.name))} are tied at ${top}.`;
       else $("summary").textContent = `${total} ${total === 1 ? "game" : "games"} played. 👑 ${leaders[0].name} leads by ${top - (sorted[1] ? sorted[1].wins : 0)}.`;
@@ -604,7 +643,8 @@
         $("rosterBtn").textContent = roster ? "Change" : "Who's playing tonight?";
         const wrap = $("winButtons");
         wrap.innerHTML = "";
-        for (const p of playing) {
+        if (currentGame === ALL) wrap.innerHTML = `<p class="status">Pick a game above to record a win.</p>`;
+        else for (const p of playing) {
           const b = document.createElement("button");
           b.type = "button"; b.className = "btn"; b.textContent = p.name; b.disabled = busy;
           b.style.setProperty("--c", p.color);
@@ -707,14 +747,15 @@
       $("nights").hidden = past.length === 0;
 
       // Recent games
-      const recent = data.games.slice().reverse().slice(0, CONFIG.recentShown);
+      const recent = games.slice().reverse().slice(0, CONFIG.recentShown);
       const log = $("log");
       log.innerHTML = "";
       for (const g of recent) {
         const li = document.createElement("li");
         li.style.setProperty("--c", colorOf[g.winner] || "var(--ink)");
-        li.innerHTML = `<span class="w"></span> won <span class="d"></span>`;
+        li.innerHTML = `<span class="w"></span> won<span class="gm"></span> <span class="d"></span>`;
         li.querySelector(".w").textContent = g.winner;
+        li.querySelector(".gm").textContent = currentGame === ALL ? ` ${gameOf(g)}` : "";
         const when = [g.date ? prettyDate(g.date) : "", g.ts ? prettyTime(g.ts) : ""].filter(Boolean).join(", ");
         li.querySelector(".d").textContent = when ? `· ${when}` : "";
         log.appendChild(li);
@@ -764,12 +805,12 @@
       lastSeen = { king: state.king, streakName: state.streak && state.streak.name, streakRun: state.streak ? state.streak.run : 0 };
       // Champion of last night: once per device
       if (state.champ) {
-        const key = "pd-champ-" + state.champ.date;
+        const key = "pd-champ-" + currentGame + "-" + state.champ.date;
         if (!storeGet(key)) { storeSet(key, "1"); confetti(); }
       }
       if (!prev) return; // first load: no surprises
       if (state.king && state.king !== prev.king) {
-        confetti(); toast(`👑 ${state.king} takes the lead!`, false); return;
+        confetti(); toast(`👑 ${state.king} takes the lead!`, fromAction); return;
       }
       const s = state.streak;
       if (s && s.run >= 3 && (s.name !== prev.streakName || s.run > prev.streakRun)) {
@@ -830,21 +871,29 @@
     }
 
     function addWin(name) {
-      if (!confirm(`Add a win for ${name}?`)) return;
-      run({ action: "addWin", winner: name }, `Win added for ${name}.`, true);
+      if (currentGame === ALL) return;
+      if (!confirm(`Add a ${currentGame} win for ${name}?`)) return;
+      run({ action: "addWin", winner: name, game: currentGame }, `${currentGame} win added for ${name}.`, true);
+    }
+
+    function switchGame(name) {
+      currentGame = name;
+      storeSet("pd-game", name);
+      lastSeen = null; // no celebrations just for switching tabs
+      if (DATA) celebrate(render(DATA), false);
     }
 
     function undoLast() {
       const last = DATA && DATA.games[DATA.games.length - 1];
       if (!last || !canUndo(DATA)) return;
-      if (!confirm(`Remove the last game (${last.winner} won at ${prettyTime(last.ts)})?`)) return;
-      run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
+      if (!confirm(`Remove the last game (${last.winner} won ${gameOf(last)} at ${prettyTime(last.ts)})?`)) return;
+      run({ action: "undo" }, `Removed ${last.winner}'s ${gameOf(last)} win.`, false);
     }
     $("undoBtn").addEventListener("click", undoLast);
     $("toastUndo").addEventListener("click", () => {
       $("toast").hidden = true;
       const last = DATA && DATA.games[DATA.games.length - 1];
-      if (last && canUndo(DATA)) run({ action: "undo" }, `Removed ${last.winner}'s last win.`, false);
+      if (last && canUndo(DATA)) run({ action: "undo" }, `Removed ${last.winner}'s ${gameOf(last)} win.`, false);
     });
 
     /* ---------- Check-in ---------- */

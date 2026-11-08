@@ -14,6 +14,8 @@ Fleet Activities Yokosuka (CFAY), Japan.
   Google Sheet, not here. Not linked from the lawn site. CONFIG at the bottom:
   `scriptUrl` (Apps Script web app) enables live reads, "Record a win", undo and
   avatar editing; the published CSV links are the read-only fallback.
+  Multiple games: `CONFIG.games` lists the game tabs (first is the default);
+  the sheet's Games tab column D holds the game (blank = Pushy Dos).
 - `pushy-dos-apps-script.gs`: the Apps Script pasted into the Google Sheet
   (Extensions → Apps Script) and deployed as a web app. Not served by the site.
 - `pushy-dos-avatars/`: illustrated player pictures (SVG). The sheet's Avatar
