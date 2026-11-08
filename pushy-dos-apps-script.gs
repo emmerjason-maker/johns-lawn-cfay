@@ -6,7 +6,11 @@
  * who's playing tonight, add a player, and mark a player MIA or back.
  * Wins are recorded per game (Pushy Dos, Rummikub, ...).
  *
- * SETUP (once):
+ * HOW IT RUNS: the Google Sheet's Apps Script holds only the small loader in
+ * pushy-dos-apps-script-loader.gs, which downloads and runs THIS file from the
+ * website. Edit this file and push; the live scoreboard picks it up within ~10 minutes.
+ *
+ * SETUP (once), if not using the loader:
  * 1. Open the "Pushy Dos Scoreboard" Google Sheet.
  * 2. Extensions → Apps Script. Delete what's there and paste this whole file. Save.
  * 3. Deploy → New deployment → gear icon → Web app.

@@ -16,8 +16,11 @@ Fleet Activities Yokosuka (CFAY), Japan.
   avatar editing; the published CSV links are the read-only fallback.
   Multiple games: `CONFIG.games` lists the game tabs (first is the default);
   the sheet's Games tab column D holds the game (blank = Pushy Dos).
-- `pushy-dos-apps-script.gs`: the Apps Script pasted into the Google Sheet
-  (Extensions → Apps Script) and deployed as a web app. Not served by the site.
+- `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
+  Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
+  downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
+  changes here updates the live scoreboard with no paste or redeploy.
+- `pushy-dos-script.html`: one-tap copy page for the loader (phone-friendly).
 - `pushy-dos-avatars/`: illustrated player pictures (SVG). The sheet's Avatar
   column links to them by their GitHub Pages URL.
 - `pushy-dos.webmanifest`, `pushy-dos-icon-*.png`: home screen app icon/manifest
