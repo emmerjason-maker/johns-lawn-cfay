@@ -16,3 +16,7 @@ function app_() {
 
 function doGet(e) { return app_().doGet(e); }
 function doPost(e) { return app_().doPost(e); }
+
+// Never called. Google picks which permissions to ask for by scanning this file,
+// so this line makes it ask for access to this spreadsheet (the downloaded code needs it).
+function permissions_() { SpreadsheetApp.getActiveSpreadsheet(); }
