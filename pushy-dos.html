@@ -61,6 +61,7 @@
     }
     .game-tabs button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
     .game-tabs button:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
+    .game-tabs .add-game { border-style: dashed; }
 
     /* Night champion banner */
     .champ {
@@ -353,9 +354,12 @@
     const ALL = "All games";
     const gameOf = (g) => (g.game || "").trim() || CONFIG.games[0];
     let currentGame = ALL; // the page always opens on the combined view
+    // Game tabs: the built-in games, then games added from the page, then any others found in the sheet
     function gameList(data) {
       const list = CONFIG.games.slice();
-      for (const g of (data ? data.games : [])) if (!list.includes(gameOf(g))) list.push(gameOf(g));
+      const add = (n) => { if (n && !list.some(x => x.toLowerCase() === n.toLowerCase())) list.push(n); };
+      for (const n of (data && data.gameNames) || []) add(n);
+      for (const g of (data ? data.games : [])) add(gameOf(g));
       return list;
     }
 
@@ -442,7 +446,7 @@
     }
 
     function normalize(d) {
-      return { players: d.players, games: d.games || [], nights: d.nights || [], live: true };
+      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], live: true };
     }
 
     async function getData() {
@@ -567,6 +571,13 @@
         b.setAttribute("aria-pressed", String(name === currentGame));
         b.addEventListener("click", () => switchGame(name));
         tabs.appendChild(b);
+      }
+      if (data.live) {
+        const add = document.createElement("button");
+        add.type = "button"; add.className = "add-game"; add.textContent = "＋ Add game";
+        add.disabled = busy;
+        add.addEventListener("click", addGame);
+        tabs.appendChild(add);
       }
       const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
       const rosters = Object.fromEntries(data.nights.map(n => [n.night, n.players]));
@@ -900,6 +911,14 @@
         list.appendChild(b);
       }
       $("pickDialog").showModal();
+    }
+
+    async function addGame() {
+      const name = (prompt("Name of the new game?") || "").trim().replace(/\s+/g, " ");
+      if (!name) return;
+      if (gameList(DATA).some(g => g.toLowerCase() === name.toLowerCase())) { toast(`${name} is already on the scoreboard.`, false); return; }
+      const ok = await run({ action: "addGame", name }, `${name} added. Tap a player to record the first win.`, false);
+      if (ok) switchGame(gameList(DATA).find(g => g.toLowerCase() === name.toLowerCase()) || name);
     }
 
     function switchGame(name) {

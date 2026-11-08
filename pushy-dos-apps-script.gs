@@ -4,7 +4,7 @@
  * Lets pushy-dos.html read the scores live and write back to the Google Sheet:
  * record a win, undo the last game, set a player's avatar, check in
  * who's playing tonight, add a player, and mark a player MIA or back.
- * Wins are recorded per game (Pushy Dos, Rummikub, ...).
+ * Wins are recorded per game (Pushy Dos, Rummikub, ...), and new games can be added.
  *
  * HOW IT RUNS: the Google Sheet's Apps Script holds only the small loader in
  * pushy-dos-apps-script-loader.gs, which downloads and runs THIS file from the
@@ -27,6 +27,7 @@ const STANDINGS = "Standings";
 const GAMES = "Games";        // A: Date (game night), B: Winner, C: Recorded (time entered), D: Game
 const DEFAULT_GAME = "Pushy Dos"; // a blank Game cell means this game
 const NIGHTS = "Nights";      // A: Night, B: Players (comma-separated). Created automatically.
+const GAME_LIST = "Game List"; // A: Game. Games added from the page. Created automatically.
 const MAX_PLAYERS = 10;       // Standings rows 2 to 11
 const NIGHT_CUTOFF_HOURS = 4; // a game night runs until 4 a.m.
 const UNDO_HOURS = 3;         // undo only works this long after a win
@@ -83,6 +84,12 @@ function doPost(e) {
       if (col < 0) return json_({ error: "The Standings tab has no Status column." });
       const status = String(req.status || "").trim().toUpperCase() === "MIA" ? "MIA" : "";
       ss_().getSheetByName(STANDINGS).getRange(p.row, col + 1).setValue(status);
+    } else if (req.action === "addGame") {
+      if (!String(req.name || "").trim()) return json_({ error: "Type a game name." });
+      const name = cleanGame_(req.name);
+      const known = [DEFAULT_GAME].concat(readGameList_(), readGames_().map(g => g.game));
+      if (known.some(g => g.toLowerCase() === name.toLowerCase())) return json_({ error: name + " is already on the scoreboard." });
+      gameListSheet_().appendRow([name]);
     } else if (req.action === "checkIn") {
       const list = (Array.isArray(req.players) ? req.players : []).filter(n => names.indexOf(n) >= 0);
       const sh = nightsSheet_();
@@ -113,7 +120,8 @@ function readAll_() {
   return {
     players: readPlayers_().map(p => ({ name: p.name, wins: p.wins, status: p.status, avatar: p.avatar })),
     games: readGames_(),
-    nights: readNights_()
+    nights: readNights_(),
+    gameNames: readGameList_()
   };
 }
 
@@ -162,6 +170,23 @@ function readNights_() {
       night: String(r[0]).trim(),
       players: String(r[1]).split(",").map(s => s.trim()).filter(Boolean)
     }));
+}
+
+function readGameList_() {
+  const sh = ss_().getSheetByName(GAME_LIST);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 1).getDisplayValues()
+    .map(r => String(r[0]).trim()).filter(Boolean);
+}
+
+function gameListSheet_() {
+  let sh = ss_().getSheetByName(GAME_LIST);
+  if (!sh) {
+    sh = ss_().insertSheet(GAME_LIST);
+    sh.getRange(1, 1).setValue("Game");
+    sh.setFrozenRows(1);
+  }
+  return sh;
 }
 
 function nightsSheet_() {
