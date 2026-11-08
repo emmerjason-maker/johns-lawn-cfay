@@ -352,8 +352,7 @@
     let lastSeen = null;  // for celebrations: { king, streakName, streakRun }
     const ALL = "All games";
     const gameOf = (g) => (g.game || "").trim() || CONFIG.games[0];
-    let currentGame = storeGet("pd-game") || ALL; // first visit opens the combined view
-    if (currentGame !== ALL && !CONFIG.games.includes(currentGame)) currentGame = CONFIG.games[0];
+    let currentGame = ALL; // the page always opens on the combined view
     function gameList(data) {
       const list = CONFIG.games.slice();
       for (const g of (data ? data.games : [])) if (!list.includes(gameOf(g))) list.push(gameOf(g));
@@ -562,7 +561,7 @@
       document.title = `${label} Scoreboard`;
       const tabs = $("gameTabs");
       tabs.innerHTML = "";
-      for (const name of [...gameList(data), ALL]) {
+      for (const name of [ALL, ...gameList(data)]) {
         const b = document.createElement("button");
         b.type = "button"; b.textContent = name;
         b.setAttribute("aria-pressed", String(name === currentGame));
@@ -905,7 +904,6 @@
 
     function switchGame(name) {
       currentGame = name;
-      storeSet("pd-game", name);
       lastSeen = null; // no celebrations just for switching tabs
       if (DATA) celebrate(render(DATA), false);
     }
