@@ -32,8 +32,21 @@ const MAX_PLAYERS = 10;       // Standings rows 2 to 11
 const NIGHT_CUTOFF_HOURS = 4; // a game night runs until 4 a.m.
 const UNDO_HOURS = 3;         // undo only works this long after a win
 
+// Reads are served from a 30-second ready-made copy when possible (much faster
+// than re-reading every tab). Every write refreshes the copy straight away.
+const READ_CACHE_KEY = "scoreboard-readall";
+const READ_CACHE_SECONDS = 30;
+
 function doGet() {
-  return json_(readAll_());
+  const hit = CacheService.getScriptCache().get(READ_CACHE_KEY);
+  if (hit) return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
+  return json_(cacheRead_(readAll_()));
+}
+
+function cacheRead_(obj) {
+  const text = JSON.stringify(obj);
+  if (text.length < 90000) CacheService.getScriptCache().put(READ_CACHE_KEY, text, READ_CACHE_SECONDS);
+  return obj;
 }
 
 function doPost(e) {
@@ -108,7 +121,7 @@ function doPost(e) {
     }
 
     SpreadsheetApp.flush();
-    return json_(readAll_());
+    return json_(cacheRead_(readAll_()));
   } catch (err) {
     return json_({ error: String(err && err.message || err) });
   } finally {

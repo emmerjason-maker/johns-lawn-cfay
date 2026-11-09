@@ -879,6 +879,22 @@
       }
     }
 
+    /* Instant first paint: remember the last scores on this phone and show them
+       straight away next time, while fresh scores load from Google. */
+    const SAVED_KEY = "pd-saved-scores";
+    function saveScores(data) {
+      if (!data || !data.live) return;
+      try { localStorage.setItem(SAVED_KEY, JSON.stringify({ at: Date.now(), data })); } catch (e) { /* full or blocked: skip */ }
+    }
+    function showSavedScores() {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(SAVED_KEY) || "null"); } catch (e) { saved = null; }
+      if (!saved || !saved.data || !Array.isArray(saved.data.players) || DATA) return;
+      DATA = saved.data;
+      celebrate(render(DATA), false);
+      $("status").textContent = "Updating…";
+    }
+
     function stamp() {
       const t = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
       $("status").textContent = DATA.live ? `Updated ${t}.` : `Updated ${t}. Sheet changes can take a few minutes to show here.`;
@@ -895,6 +911,7 @@
         DATA = await getData();
         celebrate(render(DATA), false);
         stamp();
+        saveScores(DATA);
       } catch (e) {
         $("status").textContent = "Couldn't load the scores. Check that the sheet is still published to the web.";
       }
@@ -920,6 +937,7 @@
         busy = false;
         const state = render(DATA);
         stamp();
+        saveScores(DATA);
         if (okMsg) toast(okMsg, withUndo);
         celebrate(state, withUndo);
         return true;
@@ -1187,8 +1205,9 @@
     document.addEventListener("visibilitychange", onResume);
     window.addEventListener("pageshow", (e) => { if (e.persisted) onResume(); });
 
+    load();             // start fetching fresh scores first…
+    showSavedScores();  // …and show the last saved scores while they arrive
     checkForUpdate();
-    load();
     setInterval(load, CONFIG.refreshSeconds * 1000);
     setInterval(checkForUpdate, 5 * 60 * 1000);
   </script>
