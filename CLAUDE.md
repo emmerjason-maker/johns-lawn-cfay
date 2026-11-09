@@ -16,7 +16,8 @@ Fleet Activities Yokosuka (CFAY), Japan.
   avatar editing; the published CSV links are the read-only fallback.
   Multiple games: `CONFIG.games` lists the game tabs (first is the default);
   the sheet's Games tab column D holds the game (blank = Pushy Dos). Games added
-  from the page (＋ Add game) are stored in the sheet's Game List tab.
+  from the page (＋ Add game) are stored in the sheet's Game List tab (Game, Emoji);
+  built-in game emojis are in `CONFIG.gameEmoji`.
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing

@@ -27,7 +27,7 @@ const STANDINGS = "Standings";
 const GAMES = "Games";        // A: Date (game night), B: Winner, C: Recorded (time entered), D: Game
 const DEFAULT_GAME = "Pushy Dos"; // a blank Game cell means this game
 const NIGHTS = "Nights";      // A: Night, B: Players (comma-separated). Created automatically.
-const GAME_LIST = "Game List"; // A: Game. Games added from the page. Created automatically.
+const GAME_LIST = "Game List"; // A: Game, B: Emoji. Games added from the page. Created automatically.
 const MAX_PLAYERS = 10;       // Standings rows 2 to 11
 const NIGHT_CUTOFF_HOURS = 4; // a game night runs until 4 a.m.
 const UNDO_HOURS = 3;         // undo only works this long after a win
@@ -89,7 +89,7 @@ function doPost(e) {
       const name = cleanGame_(req.name);
       const known = [DEFAULT_GAME].concat(readGameList_(), readGames_().map(g => g.game));
       if (known.some(g => g.toLowerCase() === name.toLowerCase())) return json_({ error: name + " is already on the scoreboard." });
-      gameListSheet_().appendRow([name]);
+      gameListSheet_().appendRow([name, cleanEmoji_(req.emoji)]);
     } else if (req.action === "checkIn") {
       const list = (Array.isArray(req.players) ? req.players : []).filter(n => names.indexOf(n) >= 0);
       const sh = nightsSheet_();
@@ -121,7 +121,8 @@ function readAll_() {
     players: readPlayers_().map(p => ({ name: p.name, wins: p.wins, status: p.status, avatar: p.avatar })),
     games: readGames_(),
     nights: readNights_(),
-    gameNames: readGameList_()
+    gameNames: readGameList_(),
+    gameEmojis: readGameEmojis_()
   };
 }
 
@@ -179,14 +180,33 @@ function readGameList_() {
     .map(r => String(r[0]).trim()).filter(Boolean);
 }
 
+function readGameEmojis_() {
+  const sh = ss_().getSheetByName(GAME_LIST);
+  const out = {};
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, 2).getDisplayValues().forEach(r => {
+    const name = String(r[0]).trim(), emoji = String(r[1]).trim();
+    if (name && emoji) out[name] = emoji;
+  });
+  return out;
+}
+
 function gameListSheet_() {
   let sh = ss_().getSheetByName(GAME_LIST);
   if (!sh) {
     sh = ss_().insertSheet(GAME_LIST);
-    sh.getRange(1, 1).setValue("Game");
     sh.setFrozenRows(1);
   }
+  sh.getRange(1, 1, 1, 2).setValues([["Game", "Emoji"]]);
   return sh;
+}
+
+// Game emoji: optional, a few characters, no formulas or markup
+function cleanEmoji_(e) {
+  e = String(e || "").trim();
+  if (!e) return "";
+  if (e.length > 8 || /^[=+\-@]/.test(e) || /[<>]/.test(e)) throw new Error("Use a single emoji for the game.");
+  return e;
 }
 
 function nightsSheet_() {

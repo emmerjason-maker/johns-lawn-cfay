@@ -23,6 +23,7 @@
     :root {
       --paper: #FBF5D3; --rule: #B9CDE6; --margin: #E07A7A; --ink: #22303F; --muted: #5E6878; --lead: #DDEFD9;
       --gold: #E6A817;
+      --line: #B9CDE6; /* outlines on chips and small buttons */
       --p1: #1F5FAF; --p2: #B23A3A; --p3: #2E7D4F; --p4: #7A4AA6; --p5: #B8640F; --p6: #0F7C86; --p7: #A63A7A; --p8: #5A6B1F;
       --hand: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
       --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -33,6 +34,7 @@
       :root {
         --paper: #1E2A24; --rule: #2F3E36; --margin: #8C4B4B; --ink: #EDEFE6; --muted: #A9B3AA; --lead: #2A3D31;
         --gold: #F2C14E;
+        --line: #5B6E63;
         --p1: #8FB8F0; --p2: #F09A9A; --p3: #8FD6A8; --p4: #C9A6EE; --p5: #F2B872; --p6: #7FD3DB; --p7: #EE9CCB; --p8: #C3D67F;
         color-scheme: dark;
       }
@@ -57,11 +59,17 @@
     .game-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
     .game-tabs button {
       font: inherit; font-family: var(--hand); font-size: 1.25rem; cursor: pointer; min-height: 44px;
-      padding: 0.3rem 1rem; border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--muted);
+      padding: 0.3rem 1rem; border-radius: 999px; border: 2px solid var(--line); background: transparent; color: var(--muted);
     }
     .game-tabs button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
     .game-tabs button:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
-    .game-tabs .add-game { border-style: dashed; }
+    /* "＋ Add game" and "＋ Add player" share one look: a dashed chip */
+    button.add-chip {
+      font: inherit; font-family: var(--hand); font-size: 1.25rem; cursor: pointer; min-height: 44px;
+      padding: 0.3rem 1rem; border-radius: 999px; border: 2px dashed var(--line); background: transparent; color: var(--muted);
+    }
+    button.add-chip:disabled { opacity: 0.5; cursor: default; }
+    button.add-chip:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
 
     /* Night champion banner */
     .champ {
@@ -79,8 +87,10 @@
     }
     .btn:disabled { opacity: 0.5; cursor: default; }
     .btn:focus-visible, .av:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
-    .btn.ghost { border-color: var(--rule); font-weight: 400; }
+    .btn.ghost { border-color: var(--line); font-weight: 400; }
     .btn.link { border: 0; min-height: 0; padding: 0.25rem 0; text-decoration: underline; font-weight: 400; color: var(--muted); }
+    .btn.small { min-height: 36px; padding: 0.2rem 0.85rem; font-size: 0.9rem; font-weight: 400; border: 1.5px solid var(--line); }
+    .roster span:empty { display: none; }
 
     /* Record a win */
     .record { display: grid; gap: 0.6rem; }
@@ -140,6 +150,7 @@
     .night h2 { margin: 0; }
     .night-head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
     .night-head .status { font-size: 1rem; }
+    .night-head #shareBtn { margin-left: auto; }
     .night-lead { margin: 0; font-weight: 700; }
     .night-list { list-style: none; margin: 0; padding: 0; border-top: 1px dashed var(--rule); }
     .night-list li {
@@ -185,6 +196,12 @@
       flex: 1; min-width: 0; min-height: 44px; font: inherit; font-size: 1.2rem; padding: 0.4rem 0.8rem;
       border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--ink);
     }
+    .ask-fields { display: grid; gap: 0.5rem; }
+    .emoji-row input, .ask-fields input {
+      min-width: 0; min-height: 44px; font: inherit; font-size: 1.2rem; padding: 0.4rem 0.8rem;
+      border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--ink);
+    }
+    .dlg .status:empty { display: none; }
     .checks { display: grid; gap: 0.25rem; }
     .checks label {
       display: flex; align-items: center; gap: 0.75rem; min-height: 44px; padding: 0 0.5rem;
@@ -224,9 +241,9 @@
       <p class="status" id="status" role="status"></p>
       <div class="game-tabs" id="gameTabs" role="group" aria-label="Choose a game">
         <!-- shown while loading; replaced once the scores arrive -->
-        <button type="button" aria-pressed="true">All games</button>
-        <button type="button" aria-pressed="false">Pushy Dos</button>
-        <button type="button" aria-pressed="false">Rummikub</button>
+        <button type="button" aria-pressed="true">🏆 All games</button>
+        <button type="button" aria-pressed="false">🃏 Pushy Dos</button>
+        <button type="button" aria-pressed="false">🀄 Rummikub</button>
       </div>
     </header>
 
@@ -244,15 +261,11 @@
 
     <section class="record" id="record" hidden>
       <h2>Record a win</h2>
-      <p class="roster status"><span id="rosterText"></span> <button type="button" class="btn link" id="rosterBtn">Who's playing tonight?</button></p>
+      <p class="roster status"><span id="rosterText"></span> <button type="button" class="btn small" id="rosterBtn">👥 Who's playing tonight?</button></p>
       <div class="win-buttons" id="winButtons"></div>
       <div class="record-foot">
         <span class="status">Tap a player's circle below for their picture or MIA.</span>
-        <span>
-          <button type="button" class="btn link" id="addPlayerBtn">＋ Add player</button>
-          &nbsp;·&nbsp;
-          <button type="button" class="btn link" id="undoBtn">Undo last game</button>
-        </span>
+        <button type="button" class="btn small" id="undoBtn">↩︎ Undo last game</button>
       </div>
     </section>
 
@@ -260,6 +273,7 @@
       <div class="night-head">
         <h2 id="nightTitle">Tonight</h2>
         <span class="status" id="nightDate"></span>
+        <button type="button" class="btn small" id="shareBtn">📤 Share</button>
       </div>
       <p class="night-lead" id="nightLead"></p>
       <ul class="night-list" id="nightList"></ul>
@@ -314,6 +328,18 @@
     </form>
   </dialog>
 
+  <dialog id="askDialog" aria-labelledby="askTitle">
+    <form class="dlg" id="askForm">
+      <h2 id="askTitle"></h2>
+      <p class="status" id="askText"></p>
+      <div class="ask-fields" id="askFields"></div>
+      <div class="dlg-row">
+        <button type="button" class="btn ghost" id="askCancel">Cancel</button>
+        <button type="submit" class="btn" id="askOk">OK</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="pickDialog" aria-labelledby="pickTitle">
     <form method="dialog" class="dlg">
       <h2 id="pickTitle">Which game?</h2>
@@ -345,7 +371,8 @@
       gamesCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=1&single=true&output=csv",            // optional: shows recent games when set
       recentShown: 10,
       refreshSeconds: 60,
-      games: ["Pushy Dos", "Rummikub"], // add a game here to give it its own tab; the first is the default
+      games: ["Pushy Dos", "Rummikub"], // built-in game tabs (more can be added from the page)
+      gameEmoji: { "Pushy Dos": "🃏", "Rummikub": "🀄" }, // added games pick their own; otherwise 🎲
       nightCutoffHours: 4,  // a game night runs until 4 a.m. (match the Apps Script)
       undoHours: 3          // undo only works this long after a win (match the Apps Script)
     };
@@ -359,6 +386,11 @@
     const ALL = "All games";
     const gameOf = (g) => (g.game || "").trim() || CONFIG.games[0];
     let currentGame = ALL; // the page always opens on the combined view
+    function emojiOf(name) {
+      if (name === ALL) return "🏆";
+      return (DATA && DATA.gameEmojis && DATA.gameEmojis[name]) || CONFIG.gameEmoji[name] || "🎲";
+    }
+
     // Game tabs: the built-in games, then games added from the page, then any others found in the sheet
     function gameList(data) {
       const list = CONFIG.games.slice();
@@ -451,7 +483,7 @@
     }
 
     function normalize(d) {
-      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], live: true };
+      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, live: true };
     }
 
     async function getData() {
@@ -572,14 +604,14 @@
       tabs.innerHTML = "";
       for (const name of [ALL, ...gameList(data)]) {
         const b = document.createElement("button");
-        b.type = "button"; b.textContent = name;
+        b.type = "button"; b.textContent = `${emojiOf(name)} ${name}`;
         b.setAttribute("aria-pressed", String(name === currentGame));
         b.addEventListener("click", () => switchGame(name));
         tabs.appendChild(b);
       }
       if (data.live) {
         const add = document.createElement("button");
-        add.type = "button"; add.className = "add-game"; add.textContent = "＋ Add game";
+        add.type = "button"; add.className = "add-chip"; add.textContent = "＋ Add game";
         add.disabled = busy;
         add.addEventListener("click", addGame);
         tabs.appendChild(add);
@@ -665,7 +697,7 @@
         $("rosterText").textContent = roster
           ? (playing.length ? `Playing tonight: ${joinNames(playing.map(p => p.name))}.` : "Nobody checked in yet.")
           : "";
-        $("rosterBtn").textContent = roster ? "Change" : "Who's playing tonight?";
+        $("rosterBtn").textContent = roster ? "👥 Change" : "👥 Who's playing tonight?";
         const wrap = $("winButtons");
         wrap.innerHTML = "";
         for (const p of playing) {
@@ -675,8 +707,11 @@
           b.addEventListener("click", () => addWin(p.name));
           wrap.appendChild(b);
         }
+        const addP = document.createElement("button");
+        addP.type = "button"; addP.className = "add-chip"; addP.textContent = "＋ Add player"; addP.disabled = busy;
+        addP.addEventListener("click", addPlayer);
+        wrap.appendChild(addP);
         $("rosterBtn").disabled = busy;
-        $("addPlayerBtn").disabled = busy;
         const undoOk = canUndo(data);
         $("undoBtn").disabled = busy || !undoOk;
         $("undoBtn").title = undoOk ? "" : `Undo works for ${CONFIG.undoHours} hours after a win.`;
@@ -706,6 +741,8 @@
           list.appendChild(li);
         }
       }
+
+      shareInfo = latest ? { latest, rows: players.map(p => ({ name: p.name, n: latest.wins[p.name] || 0 })).filter(p => p.n).sort((a, b) => b.n - a.n), streak: streaks.current } : null;
 
       // Champion of the last finished night (shown the day after)
       const champ = latest && !latest.isToday ? latest : null;
@@ -779,7 +816,7 @@
         li.style.setProperty("--c", colorOf[g.winner] || "var(--ink)");
         li.innerHTML = `<span class="w"></span> won<span class="gm"></span> <span class="d"></span>`;
         li.querySelector(".w").textContent = g.winner;
-        li.querySelector(".gm").textContent = currentGame === ALL ? ` ${gameOf(g)}` : "";
+        li.querySelector(".gm").textContent = currentGame === ALL ? ` ${emojiOf(gameOf(g))} ${gameOf(g)}` : "";
         const when = [g.date ? prettyDate(g.date) : "", g.ts ? prettyTime(g.ts) : ""].filter(Boolean).join(", ");
         li.querySelector(".d").textContent = when ? `· ${when}` : "";
         log.appendChild(li);
@@ -853,7 +890,7 @@
         $("summary").textContent = "Not connected yet.";
         return;
       }
-      if (busy || $("avDialog").open || $("rosterDialog").open || $("pickDialog").open) return; // don't redraw mid-action
+      if (busy || document.querySelector("dialog[open]")) return; // don't redraw mid-action
       try {
         DATA = await getData();
         celebrate(render(DATA), false);
@@ -898,10 +935,10 @@
       run({ action: "addWin", winner: name, game }, `${game} win added for ${name}.`, true);
     }
 
-    function addWin(name) {
+    async function addWin(name) {
       if (currentGame === ALL) return pickGame(name); // picking the game is the confirmation
-      if (!confirm(`Add a ${currentGame} win for ${name}?`)) return;
-      recordWin(name, currentGame);
+      const ok = await ask({ title: `${emojiOf(currentGame)} ${currentGame} win for ${name}?`, ok: "Add win" });
+      if (ok) recordWin(name, currentGame);
     }
 
     // "Which game?" picker for wins recorded from the All games tab
@@ -911,7 +948,7 @@
       list.innerHTML = "";
       for (const game of gameList(DATA)) {
         const b = document.createElement("button");
-        b.type = "button"; b.className = "btn"; b.textContent = game;
+        b.type = "button"; b.className = "btn"; b.textContent = `${emojiOf(game)} ${game}`;
         b.addEventListener("click", () => { $("pickDialog").close(); recordWin(name, game); });
         list.appendChild(b);
       }
@@ -919,10 +956,15 @@
     }
 
     async function addGame() {
-      const name = (prompt("Name of the new game?") || "").trim().replace(/\s+/g, " ");
-      if (!name) return;
+      const res = await ask({
+        title: "Add a game",
+        fields: [{ key: "name", placeholder: "Game name, like Uno", max: 30 }, { key: "emoji", placeholder: "Emoji (optional), like 🎴", max: 8 }],
+        ok: "Add game"
+      });
+      if (!res) return;
+      const name = res.name.replace(/\s+/g, " ");
       if (gameList(DATA).some(g => g.toLowerCase() === name.toLowerCase())) { toast(`${name} is already on the scoreboard.`, false); return; }
-      const ok = await run({ action: "addGame", name }, `${name} added. Tap a player to record the first win.`, false);
+      const ok = await run({ action: "addGame", name, emoji: res.emoji }, `${res.emoji || "🎲"} ${name} added. Tap a player to record the first win.`, false);
       if (ok) switchGame(gameList(DATA).find(g => g.toLowerCase() === name.toLowerCase()) || name);
     }
 
@@ -932,11 +974,11 @@
       if (DATA) celebrate(render(DATA), false);
     }
 
-    function undoLast() {
+    async function undoLast() {
       const last = DATA && DATA.games[DATA.games.length - 1];
       if (!last || !canUndo(DATA)) return;
-      if (!confirm(`Remove the last game (${last.winner} won ${gameOf(last)} at ${prettyTime(last.ts)})?`)) return;
-      run({ action: "undo" }, `Removed ${last.winner}'s ${gameOf(last)} win.`, false);
+      const ok = await ask({ title: "Undo the last game?", text: `${last.winner} won ${emojiOf(gameOf(last))} ${gameOf(last)} at ${prettyTime(last.ts)}.`, ok: "Undo it" });
+      if (ok) run({ action: "undo" }, `Removed ${last.winner}'s ${gameOf(last)} win.`, false);
     }
     $("undoBtn").addEventListener("click", undoLast);
     $("toastUndo").addEventListener("click", () => {
@@ -1036,11 +1078,90 @@
     });
 
     /* ---------- Add a player ---------- */
-    $("addPlayerBtn").addEventListener("click", () => {
-      const name = (prompt("New player's name?") || "").trim();
-      if (!name) return;
-      run({ action: "addPlayer", name }, `${name} added. Tap their circle to give them a picture.`, false);
-    });
+    async function addPlayer() {
+      const res = await ask({ title: "Add a player", fields: [{ key: "name", placeholder: "Name", max: 20 }], ok: "Add player" });
+      if (!res) return;
+      const name = res.name.replace(/\s+/g, " ");
+      const ok = await run({ action: "addPlayer", name }, `${name} added. Pick a picture for them!`, false);
+      if (!ok) return;
+      const i = DATA.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+      if (i >= 0) openAvatar({ ...DATA.players[i], color: `var(${COLORS[i % COLORS.length]})` });
+    }
+
+    /* ---------- Page-style pop-ups (instead of the phone's plain ones) ----------
+       ask({ title, text, fields: [{ key, placeholder, max }], ok }) resolves to
+       true (or the typed values) when confirmed, or null when cancelled. */
+    function ask({ title, text = "", fields = [], ok = "OK" }) {
+      return new Promise((resolve) => {
+        const d = $("askDialog"), form = $("askForm"), wrap = $("askFields");
+        $("askTitle").textContent = title;
+        $("askText").textContent = text;
+        $("askOk").textContent = ok;
+        wrap.innerHTML = "";
+        for (const f of fields) {
+          const input = document.createElement("input");
+          input.type = "text"; input.name = f.key; input.placeholder = f.placeholder || "";
+          input.maxLength = f.max || 30; input.autocomplete = "off";
+          input.setAttribute("aria-label", f.placeholder || f.key);
+          wrap.appendChild(input);
+        }
+        let settled = false;
+        const finish = (val) => {
+          if (settled) return; settled = true;
+          form.removeEventListener("submit", onSubmit);
+          $("askCancel").removeEventListener("click", onCancel);
+          d.removeEventListener("cancel", onEsc);
+          if (d.open) d.close();
+          resolve(val);
+        };
+        const onSubmit = (e) => {
+          e.preventDefault();
+          if (!fields.length) return finish(true);
+          const out = {};
+          for (const input of wrap.querySelectorAll("input")) out[input.name] = input.value.trim();
+          if (!out[fields[0].key]) { wrap.querySelector("input").focus(); return; }
+          finish(out);
+        };
+        const onCancel = () => finish(null);
+        const onEsc = (e) => { e.preventDefault(); finish(null); };
+        form.addEventListener("submit", onSubmit);
+        $("askCancel").addEventListener("click", onCancel);
+        d.addEventListener("cancel", onEsc);
+        d.showModal();
+        const first = wrap.querySelector("input");
+        if (first) first.focus(); else $("askOk").focus();
+      });
+    }
+
+    /* ---------- Share the night ---------- */
+    let shareInfo = null;
+    async function shareNight() {
+      if (!shareInfo) return;
+      const { latest, rows, streak } = shareInfo;
+      const label = currentGame === ALL ? "🎉 Game Night" : `${emojiOf(currentGame)} ${currentGame} night`;
+      const tied = latest.winners.length > 1;
+      const lead = latest.isToday
+        ? (tied ? `Tied so far: ${joinNames(latest.winners)} (${latest.top} each)` : `${latest.winners[0]} is winning with ${latest.top} of ${latest.games}`)
+        : (tied ? `Shared win: ${joinNames(latest.winners)} (${latest.top} each)` : `${latest.winners[0]} won ${latest.top} of ${latest.games} ${latest.games === 1 ? "game" : "games"}`);
+      const lines = [
+        `${label}, ${prettyDate(latest.date)}`,
+        `🏆 ${lead}!`,
+        rows.length > 1 ? rows.map(r => `${r.name} ${r.n}`).join(" · ") : "",
+        streak && streak.run >= 2 ? `🔥 ${streak.name} has won ${streak.run} in a row` : "",
+        "",
+        `Scoreboard: ${location.origin}${location.pathname}`
+      ].filter((l, i, a) => l || (i > 0 && a[i - 1]));
+      const text = lines.join("\n");
+      try {
+        if (navigator.share) { await navigator.share({ text }); return; }
+        await navigator.clipboard.writeText(text);
+        toast("Copied! Paste it into your family chat.", false);
+      } catch (e) {
+        if (e && e.name === "AbortError") return; // closed the share sheet
+        toast("Couldn't share from this browser.", false);
+      }
+    }
+    $("shareBtn").addEventListener("click", shareNight);
 
     /* ---------- Stay up to date (home screen app) ----------
        A home screen app can keep showing an old copy of this page. When the app
