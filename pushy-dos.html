@@ -83,16 +83,9 @@
     h1 { font-family: var(--hand); font-weight: 400; font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1; margin: 0; color: var(--indigo); }
     h2 { font-family: var(--hand); font-weight: 400; font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--indigo); }
 
-    /* Light/dark switch, in the banner's top-right corner */
-    .banner-wrap { position: relative; }
-    .theme-btn {
-      position: absolute; top: 8px; right: 8px; z-index: 1; width: 40px; height: 40px; border-radius: 50%;
-      display: grid; place-items: center; font-size: 1.15rem; line-height: 1; cursor: pointer;
-      border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent);
-      background: color-mix(in srgb, var(--paper) 80%, transparent); color: var(--ink);
-      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
-    }
-    .theme-btn:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
+    /* "Updated…" line with the light/dark switch on the right */
+    .status-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+    .status-row .btn.small { min-height: 32px; padding: 0.1rem 0.75rem; }
 
     /* Header banner: Mt. Fuji, sun (moon at night), sakura and waves */
     .banner { height: clamp(104px, 30vw, 150px); border-radius: 16px; overflow: hidden; margin-bottom: 0.6rem; box-shadow: 0 1px 0 var(--rule); }
@@ -295,8 +288,6 @@
 <body>
   <main class="sheet">
     <header>
-      <div class="banner-wrap">
-      <button type="button" class="theme-btn" id="themeBtn" aria-label="Color theme: Auto">🌓</button>
       <div class="banner" aria-hidden="true">
         <svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice">
           <defs>
@@ -323,7 +314,7 @@
           </defs>
           <rect width="400" height="120" fill="url(#bSky)" />
           <g class="b-stars"><circle cx="40" cy="22" r="1" /><circle cx="120" cy="14" r="1.2" /><circle cx="250" cy="18" r="1" /><circle cx="372" cy="70" r="1" /><circle cx="290" cy="58" r="0.9" /><circle cx="70" cy="60" r="0.9" /></g>
-          <circle class="b-sun" cx="300" cy="44" r="17" />
+          <circle class="b-sun" cx="318" cy="38" r="17" />
           <path class="b-hill" d="M-20 108 Q55 72 140 108 Z" />
           <path class="b-hill" d="M260 108 Q345 76 430 108 Z" />
           <path class="b-fuji" d="M96 108 L182 40 Q200 32 218 40 L304 108 Z" />
@@ -340,10 +331,12 @@
           <use href="#bFlower" x="140" y="44" transform="scale(1)" opacity="0.8" />
         </svg>
       </div>
-      </div>
       <h1 id="title">Game Night Scoreboard</h1>
       <p class="sub" id="summary">Loading scores…</p>
-      <p class="status" id="status" role="status"></p>
+      <div class="status-row">
+        <p class="status" id="status" role="status"></p>
+        <button type="button" class="btn small" id="themeBtn">🌓 Auto</button>
+      </div>
       <div class="game-tabs" id="gameTabs" role="group" aria-label="Choose a game">
         <!-- shown while loading; replaced once the scores arrive -->
         <button type="button" aria-pressed="true">🏆 All games</button>
@@ -1312,16 +1305,16 @@
 
     /* ---------- Light / dark switch (remembered on this phone only) ---------- */
     const THEMES = [
-      { key: "auto", icon: "🌓", label: "Auto (follows your phone)" },
-      { key: "light", icon: "☀️", label: "Light" },
-      { key: "dark", icon: "🌙", label: "Dark" }
+      { key: "auto", icon: "🌓", short: "Auto", label: "Auto (follows your phone)" },
+      { key: "light", icon: "☀️", short: "Light", label: "Light" },
+      { key: "dark", icon: "🌙", short: "Dark", label: "Dark" }
     ];
     function currentTheme() { return document.documentElement.dataset.theme || "auto"; }
     function applyTheme(key) {
       const root = document.documentElement;
       if (key === "auto") delete root.dataset.theme; else root.dataset.theme = key;
       const t = THEMES.find(x => x.key === key);
-      $("themeBtn").textContent = t.icon;
+      $("themeBtn").textContent = `${t.icon} ${t.short}`;
       $("themeBtn").setAttribute("aria-label", `Color theme: ${t.label}. Tap to change.`);
       $("themeBtn").title = `Theme: ${t.label}`;
       // phone's top bar color: follow the choice, or the phone setting on Auto
