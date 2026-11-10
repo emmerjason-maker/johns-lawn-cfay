@@ -26,6 +26,12 @@
       --paper: #FBF5D3; --rule: #B9CDE6; --margin: #E07A7A; --ink: #22303F; --muted: #5E6878; --lead: #DDEFD9;
       --gold: #E6A817;
       --line: #B9CDE6; /* outlines on chips and small buttons */
+      /* Japan theme, matching the home screen icon */
+      --indigo: #1F3A68; --sun: #D7263D; --sakura: #F7B6C8; --sakura-edge: #E07A98; --branch: #5B3A29;
+      --b-sky1: #FDEFD6; --b-sky2: #F8D8B4; --b-fuji: #3E5C8A; --b-cap: #FFFFFF; --b-hill: #2B4470;
+      --b-water: #2B4470; --b-foam: #F7EEDA; --b-moon: var(--sun); --b-star: 0;
+      --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cg fill='none' stroke='%231F3A68' stroke-width='1.4'%3E%3Cpath d='M0 16a16 16 0 0 1 32 0'/%3E%3Cpath d='M5 16a11 11 0 0 1 22 0'/%3E%3Cpath d='M10 16a6 6 0 0 1 12 0'/%3E%3Cpath d='M-16 8a16 16 0 0 1 32 0'/%3E%3Cpath d='M16 8a16 16 0 0 1 32 0'/%3E%3C/g%3E%3C/svg%3E");
+      --washi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.33 0 0 0 0 0.18 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       --p1: #1F5FAF; --p2: #B23A3A; --p3: #2E7D4F; --p4: #7A4AA6; --p5: #B8640F; --p6: #0F7C86; --p7: #A63A7A; --p8: #5A6B1F;
       --hand: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
       --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -37,13 +43,18 @@
         --paper: #1E2A24; --rule: #2F3E36; --margin: #8C4B4B; --ink: #EDEFE6; --muted: #A9B3AA; --lead: #2A3D31;
         --gold: #F2C14E;
         --line: #5B6E63;
+        --indigo: #A9BEE6; --sun: #F06A7A; --sakura: #E9A3B8; --sakura-edge: #C76F8C; --branch: #8A6450;
+        --b-sky1: #152238; --b-sky2: #26375A; --b-fuji: #3A5482; --b-cap: #E8EEF6; --b-hill: #1B2B47;
+        --b-water: #1B2B47; --b-foam: #6F86B0; --b-moon: #F6E7B0; --b-star: 1;
+        --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cg fill='none' stroke='%239FB4DC' stroke-width='1.4'%3E%3Cpath d='M0 16a16 16 0 0 1 32 0'/%3E%3Cpath d='M5 16a11 11 0 0 1 22 0'/%3E%3Cpath d='M10 16a6 6 0 0 1 12 0'/%3E%3Cpath d='M-16 8a16 16 0 0 1 32 0'/%3E%3Cpath d='M16 8a16 16 0 0 1 32 0'/%3E%3C/g%3E%3C/svg%3E");
+        --washi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         --p1: #8FB8F0; --p2: #F09A9A; --p3: #8FD6A8; --p4: #C9A6EE; --p5: #F2B872; --p6: #7FD3DB; --p7: #EE9CCB; --p8: #C3D67F;
         color-scheme: dark;
       }
     }
     *, *::before, *::after { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.5; }
+    body { margin: 0; background: var(--washi), var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.5; }
     .sheet {
       max-width: 40rem; margin: 0 auto; display: grid; gap: 2rem;
       padding-block: 2rem 6rem;
@@ -51,8 +62,22 @@
       padding-right: max(16px, env(safe-area-inset-right, 0px));
     }
     header { display: grid; gap: 0.25rem; }
-    h1 { font-family: var(--hand); font-weight: 400; font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1; margin: 0; }
-    h2 { font-family: var(--hand); font-weight: 400; font-size: 1.8rem; margin: 0 0 0.5rem; }
+    h1 { font-family: var(--hand); font-weight: 400; font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1; margin: 0; color: var(--indigo); }
+    h2 { font-family: var(--hand); font-weight: 400; font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--indigo); }
+
+    /* Header banner: Mt. Fuji, sun (moon at night), sakura and waves */
+    .banner { height: clamp(104px, 30vw, 150px); border-radius: 16px; overflow: hidden; margin-bottom: 0.6rem; box-shadow: 0 1px 0 var(--rule); }
+    .banner svg { display: block; width: 100%; height: 100%; }
+    .b-fuji { fill: var(--b-fuji); } .b-cap { fill: var(--b-cap); } .b-hill { fill: var(--b-hill); }
+    .b-sun { fill: var(--b-moon); } .b-water { fill: var(--b-water); } .b-foam { stroke: var(--b-foam); }
+    .b-stars { fill: #FFFFFF; opacity: var(--b-star); }
+    .b-branch { stroke: var(--branch); } .b-petal { fill: var(--sakura); stroke: var(--sakura-edge); } .b-heart { fill: var(--sun); }
+
+    /* Seigaiha wave divider above each section */
+    .sheet > section::before {
+      content: ""; display: block; height: 16px; margin-bottom: 1.1rem;
+      background: var(--wave) repeat-x center / 32px 16px; opacity: 0.45;
+    }
     .sub, .status { margin: 0; color: var(--muted); }
     .status { font-size: 0.9rem; }
     .notice { background: var(--lead); border-radius: 12px; padding: 0.9rem 1rem; }
@@ -63,7 +88,7 @@
       font: inherit; font-family: var(--hand); font-size: 1.25rem; cursor: pointer; min-height: 44px;
       padding: 0.3rem 1rem; border-radius: 999px; border: 2px solid var(--line); background: transparent; color: var(--muted);
     }
-    .game-tabs button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+    .game-tabs button[aria-pressed="true"] { border-color: var(--indigo); background: var(--indigo); color: var(--paper); }
     .game-tabs button:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
     /* "＋ Add game" and "＋ Add player" share one look: a dashed chip */
     button.add-chip {
@@ -75,9 +100,11 @@
 
     /* Night champion banner */
     .champ {
-      display: flex; align-items: center; gap: 0.9rem; padding: 0.9rem 1rem; border-radius: 14px;
-      border: 2px solid var(--gold); background: color-mix(in srgb, var(--gold) 14%, var(--paper));
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 0.9rem; padding: 0.9rem 4.5rem 0.9rem 1rem; border-radius: 14px;
+      border: 2px solid var(--sun); background: color-mix(in srgb, var(--sun) 9%, var(--paper));
     }
+    .champ .sprig { position: absolute; top: -6px; right: -6px; width: 92px; height: 70px; pointer-events: none; }
     .champ .big { font-size: 2rem; line-height: 1; }
     .champ p { margin: 0; }
     .champ .t { font-family: var(--hand); font-size: 1.5rem; line-height: 1.1; }
@@ -114,6 +141,7 @@
     .line { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
     .name { font-family: var(--hand); font-size: 1.7rem; line-height: 1.1; color: var(--c); }
     .count { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .chip.leader { background: var(--sun); border-color: var(--sun); color: #FFFFFF; }
     .chip {
       font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
       padding: 0.1rem 0.5rem; border-radius: 999px; border: 1.5px solid var(--c); color: var(--c);
@@ -152,7 +180,7 @@
     .night h2 { margin: 0; }
     .night-head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
     .night-head .status { font-size: 1rem; }
-    .night-head #shareBtn { margin-left: auto; }
+    .night-lead-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
     .night-lead { margin: 0; font-weight: 700; }
     .night-list { list-style: none; margin: 0; padding: 0; border-top: 1px dashed var(--rule); }
     .night-list li {
@@ -238,6 +266,49 @@
 <body>
   <main class="sheet">
     <header>
+      <div class="banner" aria-hidden="true">
+        <svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="bSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" style="stop-color: var(--b-sky1)" /><stop offset="1" style="stop-color: var(--b-sky2)" />
+            </linearGradient>
+            <pattern id="bWave" width="24" height="12" patternUnits="userSpaceOnUse">
+              <rect class="b-water" width="24" height="12" />
+              <g class="b-foam" fill="none" stroke-width="1.2">
+                <path d="M0 12a12 12 0 0 1 24 0" /><path d="M5 12a7 7 0 0 1 14 0" />
+                <path d="M-12 6a12 12 0 0 1 24 0" /><path d="M12 6a12 12 0 0 1 24 0" />
+              </g>
+            </pattern>
+            <g id="bFlower">
+              <g class="b-petal" stroke-width="0.8">
+                <path d="M0 -7 C3.5 -7 4.3 -2.6 0 0 C-4.3 -2.6 -3.5 -7 0 -7 Z" />
+                <path d="M0 -7 C3.5 -7 4.3 -2.6 0 0 C-4.3 -2.6 -3.5 -7 0 -7 Z" transform="rotate(72)" />
+                <path d="M0 -7 C3.5 -7 4.3 -2.6 0 0 C-4.3 -2.6 -3.5 -7 0 -7 Z" transform="rotate(144)" />
+                <path d="M0 -7 C3.5 -7 4.3 -2.6 0 0 C-4.3 -2.6 -3.5 -7 0 -7 Z" transform="rotate(216)" />
+                <path d="M0 -7 C3.5 -7 4.3 -2.6 0 0 C-4.3 -2.6 -3.5 -7 0 -7 Z" transform="rotate(288)" />
+              </g>
+              <circle class="b-heart" r="1.5" />
+            </g>
+          </defs>
+          <rect width="400" height="120" fill="url(#bSky)" />
+          <g class="b-stars"><circle cx="40" cy="22" r="1" /><circle cx="120" cy="14" r="1.2" /><circle cx="250" cy="18" r="1" /><circle cx="372" cy="70" r="1" /><circle cx="290" cy="58" r="0.9" /><circle cx="70" cy="60" r="0.9" /></g>
+          <circle class="b-sun" cx="318" cy="38" r="17" />
+          <path class="b-hill" d="M-20 108 Q55 72 140 108 Z" />
+          <path class="b-hill" d="M260 108 Q345 76 430 108 Z" />
+          <path class="b-fuji" d="M96 108 L182 40 Q200 32 218 40 L304 108 Z" />
+          <path class="b-cap" d="M182 40 Q200 32 218 40 L232 52 L223 50 L215 57 L207 50 L199 58 L191 50 L183 56 L176 50 L168 51 Z" />
+          <rect y="104" width="400" height="16" fill="url(#bWave)" />
+          <g class="b-branch" fill="none" stroke-linecap="round">
+            <path d="M-4 12 C28 16 52 14 78 30 C88 36 96 46 100 56" stroke-width="4" />
+            <path d="M40 15 C48 7 56 4 66 3" stroke-width="2.5" />
+            <path d="M70 26 C72 38 68 46 62 54" stroke-width="2.5" />
+          </g>
+          <use href="#bFlower" x="18" y="14" /><use href="#bFlower" x="44" y="18" transform="rotate(0)" />
+          <use href="#bFlower" x="66" y="5" /><use href="#bFlower" x="84" y="36" /><use href="#bFlower" x="62" y="54" />
+          <use href="#bFlower" x="100" y="56" /><use href="#bFlower" x="6" y="30" />
+          <use href="#bFlower" x="140" y="44" transform="scale(1)" opacity="0.8" />
+        </svg>
+      </div>
       <h1 id="title">Game Night Scoreboard</h1>
       <p class="sub" id="summary">Loading scores…</p>
       <p class="status" id="status" role="status"></p>
@@ -250,6 +321,14 @@
     </header>
 
     <div class="champ" id="champ" hidden>
+      <svg class="sprig" viewBox="0 0 92 70" aria-hidden="true">
+        <g class="b-branch" fill="none" stroke-linecap="round">
+          <path d="M96 8 C70 10 50 18 34 34 C26 42 22 52 20 62" stroke-width="3.5" />
+          <path d="M60 14 C56 24 58 32 64 40" stroke-width="2.2" />
+        </g>
+        <use href="#bFlower" x="74" y="10" /><use href="#bFlower" x="48" y="22" />
+        <use href="#bFlower" x="30" y="40" /><use href="#bFlower" x="64" y="40" /><use href="#bFlower" x="20" y="60" />
+      </svg>
       <span class="big" aria-hidden="true">🏆</span>
       <div>
         <p class="t" id="champTitle"></p>
@@ -275,9 +354,11 @@
       <div class="night-head">
         <h2 id="nightTitle">Tonight</h2>
         <span class="status" id="nightDate"></span>
+      </div>
+      <div class="night-lead-row">
+        <p class="night-lead" id="nightLead"></p>
         <button type="button" class="btn small" id="shareBtn">📤 Share</button>
       </div>
-      <p class="night-lead" id="nightLead"></p>
       <ul class="night-list" id="nightList"></ul>
     </section>
 
@@ -649,7 +730,7 @@
         li.style.setProperty("--c", p.color);
         const best = streaks.best[p.name] || 0;
         const cur = streaks.current && streaks.current.name === p.name ? streaks.current.run : 0;
-        const chip = top > 0 && p.wins === top ? `<span class="chip">${leaders.length > 1 ? "Tied" : "Leader"}</span>` : "";
+        const chip = top > 0 && p.wins === top ? (leaders.length > 1 ? `<span class="chip">Tied</span>` : `<span class="chip leader">Leader</span>`) : "";
         const stats = [
           best ? `Best streak: ${best}` : "",
           nightsWon[p.name] ? `🏆 Nights won: ${nightsWon[p.name]}` : "",
