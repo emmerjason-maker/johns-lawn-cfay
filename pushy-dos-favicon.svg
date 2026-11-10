@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- rising sun -->
+  <circle cx="32" cy="32" r="31" fill="#D7263D"/>
+  <!-- gold trophy -->
+  <path d="M17 18 C8 18 8 30 19 31" fill="none" stroke="#F2C14E" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M47 18 C56 18 56 30 45 31" fill="none" stroke="#F2C14E" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M16 14 H48 V24 C48 34 40 40 32 40 C24 40 16 34 16 24 Z" fill="#F2C14E" stroke="#8C5F0E" stroke-width="1.5"/>
+  <path d="M20 17 H24 V25 C24 30 22 32 20 29 Z" fill="#FBE29A"/>
+  <rect x="29" y="39" width="6" height="7" fill="#C9921A"/>
+  <rect x="21" y="45" width="22" height="5" rx="1.5" fill="#2A2420"/>
+  <rect x="18" y="49" width="28" height="5" rx="1.5" fill="#2A2420"/>
+  <!-- one sakura blossom -->
+  <g transform="translate(51 13)">
+    <g fill="#FBCFDC" stroke="#E07A98" stroke-width="0.8">
+      <path d="M0 -8 C4 -8 5 -3 0 0 C-5 -3 -4 -8 0 -8 Z"/>
+      <path d="M0 -8 C4 -8 5 -3 0 0 C-5 -3 -4 -8 0 -8 Z" transform="rotate(72)"/>
+      <path d="M0 -8 C4 -8 5 -3 0 0 C-5 -3 -4 -8 0 -8 Z" transform="rotate(144)"/>
+      <path d="M0 -8 C4 -8 5 -3 0 0 C-5 -3 -4 -8 0 -8 Z" transform="rotate(216)"/>
+      <path d="M0 -8 C4 -8 5 -3 0 0 C-5 -3 -4 -8 0 -8 Z" transform="rotate(288)"/>
+    </g>
+    <circle r="1.8" fill="#E9567B"/>
+  </g>
+</svg>

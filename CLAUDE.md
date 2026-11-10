@@ -26,7 +26,9 @@ Fleet Activities Yokosuka (CFAY), Japan.
 - `pushy-dos-avatars/`: illustrated player pictures (SVG). The sheet's Avatar
   column links to them by their GitHub Pages URL.
 - `pushy-dos.webmanifest`, `pushy-dos-icon-*.png`: home screen app icon/manifest
-  for the scoreboard.
+  for the scoreboard (Japan theme; bump the `?v=` tag when the icon changes).
+- `pushy-dos-favicon.svg`, `pushy-dos-favicon-{16,32,48}.png`: simplified browser-tab
+  icon (gold trophy on a red sun with one sakura blossom).
 
 ## Where to edit
 All content lives in the `CONFIG` object near the bottom of `index.html`:
