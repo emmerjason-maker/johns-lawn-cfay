@@ -27,6 +27,8 @@ Fleet Activities Yokosuka (CFAY), Japan.
   column links to them by their GitHub Pages URL.
 - `gamenight.webmanifest`, `gamenight-icon-*.png`: home screen app icon/manifest
   for the scoreboard (Japan theme; give the files new names when the icon changes, since iPhones cache it).
+- Light/dark: the scoreboard follows the phone by default; the ☀️/🌙 button in the
+  banner overrides it per device (localStorage `pd-theme`, applied via `data-theme` on <html>).
 - `pushy-dos-favicon.svg`, `pushy-dos-favicon-{16,32,48}.png`: simplified browser-tab
   icon (gold trophy on a red sun with one sakura blossom).
 

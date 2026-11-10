@@ -17,6 +17,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#FBF5D3" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#1E2A24" media="(prefers-color-scheme: dark)" />
+  <script>
+    // Light/dark choice saved on this phone ("light" or "dark"; nothing = follow the phone)
+    try { const t = localStorage.getItem("pd-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
@@ -38,8 +42,9 @@
       padding-top: env(safe-area-inset-top, 0px);
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
+    /* Dark mode: follows the phone (Auto) unless someone picks Light or Dark on this phone */
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme="light"]) {
         --paper: #1E2A24; --rule: #2F3E36; --margin: #8C4B4B; --ink: #EDEFE6; --muted: #A9B3AA; --lead: #2A3D31;
         --gold: #F2C14E;
         --line: #5B6E63;
@@ -52,6 +57,19 @@
         color-scheme: dark;
       }
     }
+    :root[data-theme="dark"] {
+      --paper: #1E2A24; --rule: #2F3E36; --margin: #8C4B4B; --ink: #EDEFE6; --muted: #A9B3AA; --lead: #2A3D31;
+      --gold: #F2C14E;
+      --line: #5B6E63;
+      --indigo: #A9BEE6; --sun: #F06A7A; --sakura: #E9A3B8; --sakura-edge: #C76F8C; --branch: #8A6450;
+      --b-sky1: #152238; --b-sky2: #26375A; --b-fuji: #3A5482; --b-cap: #E8EEF6; --b-hill: #1B2B47;
+      --b-water: #1B2B47; --b-foam: #6F86B0; --b-moon: #F6E7B0; --b-star: 1;
+      --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cg fill='none' stroke='%239FB4DC' stroke-width='1.4'%3E%3Cpath d='M0 16a16 16 0 0 1 32 0'/%3E%3Cpath d='M5 16a11 11 0 0 1 22 0'/%3E%3Cpath d='M10 16a6 6 0 0 1 12 0'/%3E%3Cpath d='M-16 8a16 16 0 0 1 32 0'/%3E%3Cpath d='M16 8a16 16 0 0 1 32 0'/%3E%3C/g%3E%3C/svg%3E");
+      --washi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      --p1: #8FB8F0; --p2: #F09A9A; --p3: #8FD6A8; --p4: #C9A6EE; --p5: #F2B872; --p6: #7FD3DB; --p7: #EE9CCB; --p8: #C3D67F;
+      color-scheme: dark;
+    }
+    :root[data-theme="light"] { color-scheme: light; }
     *, *::before, *::after { box-sizing: border-box; }
     [hidden] { display: none !important; }
     body { margin: 0; background: var(--washi), var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.5; }
@@ -64,6 +82,17 @@
     header { display: grid; gap: 0.25rem; }
     h1 { font-family: var(--hand); font-weight: 400; font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1; margin: 0; color: var(--indigo); }
     h2 { font-family: var(--hand); font-weight: 400; font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--indigo); }
+
+    /* Light/dark switch, in the banner's top-right corner */
+    .banner-wrap { position: relative; }
+    .theme-btn {
+      position: absolute; top: 8px; right: 8px; z-index: 1; width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 1.15rem; line-height: 1; cursor: pointer;
+      border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent);
+      background: color-mix(in srgb, var(--paper) 80%, transparent); color: var(--ink);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    }
+    .theme-btn:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
 
     /* Header banner: Mt. Fuji, sun (moon at night), sakura and waves */
     .banner { height: clamp(104px, 30vw, 150px); border-radius: 16px; overflow: hidden; margin-bottom: 0.6rem; box-shadow: 0 1px 0 var(--rule); }
@@ -266,6 +295,8 @@
 <body>
   <main class="sheet">
     <header>
+      <div class="banner-wrap">
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Color theme: Auto">🌓</button>
       <div class="banner" aria-hidden="true">
         <svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice">
           <defs>
@@ -292,7 +323,7 @@
           </defs>
           <rect width="400" height="120" fill="url(#bSky)" />
           <g class="b-stars"><circle cx="40" cy="22" r="1" /><circle cx="120" cy="14" r="1.2" /><circle cx="250" cy="18" r="1" /><circle cx="372" cy="70" r="1" /><circle cx="290" cy="58" r="0.9" /><circle cx="70" cy="60" r="0.9" /></g>
-          <circle class="b-sun" cx="318" cy="38" r="17" />
+          <circle class="b-sun" cx="300" cy="44" r="17" />
           <path class="b-hill" d="M-20 108 Q55 72 140 108 Z" />
           <path class="b-hill" d="M260 108 Q345 76 430 108 Z" />
           <path class="b-fuji" d="M96 108 L182 40 Q200 32 218 40 L304 108 Z" />
@@ -308,6 +339,7 @@
           <use href="#bFlower" x="100" y="56" /><use href="#bFlower" x="6" y="30" />
           <use href="#bFlower" x="140" y="44" transform="scale(1)" opacity="0.8" />
         </svg>
+      </div>
       </div>
       <h1 id="title">Game Night Scoreboard</h1>
       <p class="sub" id="summary">Loading scores…</p>
@@ -1277,6 +1309,34 @@
       }
     }
     $("shareBtn").addEventListener("click", shareNight);
+
+    /* ---------- Light / dark switch (remembered on this phone only) ---------- */
+    const THEMES = [
+      { key: "auto", icon: "🌓", label: "Auto (follows your phone)" },
+      { key: "light", icon: "☀️", label: "Light" },
+      { key: "dark", icon: "🌙", label: "Dark" }
+    ];
+    function currentTheme() { return document.documentElement.dataset.theme || "auto"; }
+    function applyTheme(key) {
+      const root = document.documentElement;
+      if (key === "auto") delete root.dataset.theme; else root.dataset.theme = key;
+      const t = THEMES.find(x => x.key === key);
+      $("themeBtn").textContent = t.icon;
+      $("themeBtn").setAttribute("aria-label", `Color theme: ${t.label}. Tap to change.`);
+      $("themeBtn").title = `Theme: ${t.label}`;
+      // phone's top bar color: follow the choice, or the phone setting on Auto
+      for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
+        const isDarkMeta = (m.getAttribute("media") || "").includes("dark");
+        m.setAttribute("content", key === "auto" ? (isDarkMeta ? "#1E2A24" : "#FBF5D3") : (key === "dark" ? "#1E2A24" : "#FBF5D3"));
+      }
+    }
+    $("themeBtn").addEventListener("click", () => {
+      const next = THEMES[(THEMES.findIndex(x => x.key === currentTheme()) + 1) % THEMES.length];
+      applyTheme(next.key);
+      try { if (next.key === "auto") localStorage.removeItem("pd-theme"); else localStorage.setItem("pd-theme", next.key); } catch (e) {}
+      toast(`${next.icon} Theme: ${next.label}`, false);
+    });
+    applyTheme(currentTheme());
 
     /* ---------- Stay up to date (home screen app) ----------
        A home screen app can keep showing an old copy of this page. When the app
