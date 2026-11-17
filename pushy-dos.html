@@ -273,10 +273,34 @@
     }
     .toast .btn { border-color: var(--paper); color: var(--paper); min-height: 36px; padding: 0.2rem 0.9rem; }
 
+    /* Trash talk */
+    .talk { display: grid; gap: 0.6rem; }
+    .talk h2 { margin: 0; }
+    .talk-form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .talk-form select, .talk-form input {
+      min-width: 0; min-height: 44px; font: inherit; font-size: 1rem; padding: 0.4rem 0.8rem;
+      border-radius: 999px; border: 2px solid var(--line); background-color: var(--paper); color: var(--ink);
+    }
+    .talk-form select { max-width: 11rem; }
+    .talk-form input { flex: 1; }
+    .talk-form select:focus-visible, .talk-form input:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
+    .talk-quick { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .talk-list {
+      list-style: none; margin: 0; padding: 0; max-height: 22rem; overflow-y: auto;
+      border-top: 1px dashed var(--rule); overscroll-behavior: contain;
+    }
+    .talk-list li { padding: 0.5rem 0; border-bottom: 1px dashed var(--rule); }
+    .talk-list .t-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .talk-list .t-name { font-family: var(--hand); font-size: 1.3rem; line-height: 1.1; color: var(--c); }
+    .talk-list .t-time { color: var(--muted); font-size: 0.8rem; }
+    .talk-list .t-text { margin: 0.1rem 0 0; overflow-wrap: anywhere; }
+    .talk-list .empty { color: var(--muted); }
+
     /* Confetti */
     #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 
     @media (max-width: 420px) {
+      .talk-form select { flex: 1 1 100%; max-width: none; }
       .board::before { left: 2rem; }
       .row { grid-template-columns: 2rem 44px minmax(0, 1fr); gap: 0 0.6rem; }
       .av { width: 44px; height: 44px; }
@@ -385,6 +409,24 @@
         <button type="button" class="btn small" id="shareBtn">📤 Share</button>
       </div>
       <ul class="night-list" id="nightList"></ul>
+    </section>
+
+    <section class="talk" id="talk" hidden aria-labelledby="talkTitle">
+      <h2 id="talkTitle">🗑️ Trash talk</h2>
+      <form class="talk-form" id="talkForm">
+        <select id="talkWho" aria-label="Who are you?"><option value="">Who are you?</option></select>
+        <input id="talkText" type="text" maxlength="200" placeholder="Say something…" autocomplete="off" aria-label="Message" />
+        <button type="submit" class="btn" id="talkSend">Send</button>
+      </form>
+      <div class="talk-quick" id="talkQuick">
+        <button type="button" class="btn small">🔥 Too easy</button>
+        <button type="button" class="btn small">😂 Nice try</button>
+        <button type="button" class="btn small">🧂 Salty?</button>
+        <button type="button" class="btn small">👀 Watch your back</button>
+        <button type="button" class="btn small">🫡 GG</button>
+        <button type="button" class="btn small">🗑️ Trash</button>
+      </div>
+      <ul class="talk-list" id="talkList" aria-live="polite"></ul>
     </section>
 
     <section aria-labelledby="overallTitle">
@@ -591,7 +633,7 @@
     }
 
     function normalize(d) {
-      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, live: true };
+      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, talk: Array.isArray(d.talk) ? d.talk : null, live: true };
     }
 
     async function getData() {
@@ -930,6 +972,8 @@
         log.appendChild(li);
       }
       $("recent").hidden = recent.length === 0;
+
+      renderTalk(data, players);
 
       return { king, streak: streaks.current, champ };
     }
@@ -1302,6 +1346,74 @@
       }
     }
     $("shareBtn").addEventListener("click", shareNight);
+
+    /* ---------- Trash talk ---------- */
+    let talkNames = "";
+    function talkWhen(ts) {
+      if (!ts) return "";
+      const d = new Date(ts);
+      const night = ymd(new Date(ts - CONFIG.nightCutoffHours * 3600e3));
+      if (night === tonightKey()) return prettyTime(ts);
+      return `${d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}, ${prettyTime(ts)}`;
+    }
+    function renderTalk(data, players) {
+      const show = !!(data.live && data.talk);
+      $("talk").hidden = !show;
+      if (!show) return;
+
+      // Player picker: rebuild only when the player list changes, keeping the current choice
+      const names = players.map(p => p.name).join("\n");
+      if (names !== talkNames) {
+        talkNames = names;
+        const sel = $("talkWho");
+        const keep = sel.value || storeGet("pd-me") || "";
+        sel.innerHTML = `<option value="">Who are you?</option>`;
+        for (const p of players) {
+          const o = document.createElement("option");
+          o.value = p.name; o.textContent = p.name;
+          sel.appendChild(o);
+        }
+        sel.value = players.some(p => p.name === keep) ? keep : "";
+      }
+      $("talkSend").disabled = busy;
+      for (const b of $("talkQuick").querySelectorAll("button")) b.disabled = busy;
+
+      // Messages, newest first
+      const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
+      const list = $("talkList");
+      list.innerHTML = "";
+      if (!data.talk.length) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "No trash talk yet. Somebody start it.";
+        list.appendChild(li);
+        return;
+      }
+      for (const m of data.talk.slice().reverse()) {
+        const li = document.createElement("li");
+        li.style.setProperty("--c", colorOf[m.name] || "var(--ink)");
+        const head = document.createElement("div"); head.className = "t-head";
+        const who = document.createElement("span"); who.className = "t-name"; who.textContent = m.name;
+        const when = document.createElement("span"); when.className = "t-time"; when.textContent = talkWhen(m.ts);
+        head.append(who, when);
+        const text = document.createElement("p"); text.className = "t-text"; text.textContent = m.text;
+        li.append(head, text);
+        list.appendChild(li);
+      }
+    }
+
+    async function sendTalk(text) {
+      const player = $("talkWho").value;
+      if (!player) { toast("Pick who you are first.", false); $("talkWho").focus(); return; }
+      text = (text || "").replace(/\s+/g, " ").trim();
+      if (!text) { $("talkText").focus(); return; }
+      storeSet("pd-me", player);
+      const ok = await run({ action: "say", player, text }, null, false);
+      if (ok) { $("talkText").value = ""; $("talkList").scrollTop = 0; }
+    }
+    $("talkForm").addEventListener("submit", (e) => { e.preventDefault(); sendTalk($("talkText").value); });
+    for (const b of $("talkQuick").querySelectorAll("button")) b.addEventListener("click", () => sendTalk(b.textContent));
+    $("talkWho").addEventListener("change", () => { if ($("talkWho").value) storeSet("pd-me", $("talkWho").value); });
 
     /* ---------- Light / dark switch (remembered on this phone only) ---------- */
     const THEMES = [

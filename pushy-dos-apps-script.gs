@@ -5,6 +5,7 @@
  * record a win, undo the last game, set a player's avatar, check in
  * who's playing tonight, add a player, and mark a player MIA or back.
  * Wins are recorded per game (Pushy Dos, Rummikub, ...), and new games can be added.
+ * Players can also post trash talk, stored in the "Trash Talk" tab.
  *
  * HOW IT RUNS: the Google Sheet's Apps Script holds only the small loader in
  * pushy-dos-apps-script-loader.gs, which downloads and runs THIS file from the
@@ -31,6 +32,9 @@ const GAME_LIST = "Game List"; // A: Game, B: Emoji. Games added from the page. 
 const MAX_PLAYERS = 10;       // Standings rows 2 to 11
 const NIGHT_CUTOFF_HOURS = 4; // a game night runs until 4 a.m.
 const UNDO_HOURS = 3;         // undo only works this long after a win
+const TALK = "Trash Talk";    // A: Time, B: Player, C: Message. Created automatically.
+const TALK_SHOWN = 40;       // newest messages sent to the page
+const TALK_MAX_CHARS = 200;
 
 // Reads are served from a 30-second ready-made copy when possible (much faster
 // than re-reading every tab). Every write refreshes the copy straight away.
@@ -103,6 +107,14 @@ function doPost(e) {
       const known = [DEFAULT_GAME].concat(readGameList_(), readGames_().map(g => g.game));
       if (known.some(g => g.toLowerCase() === name.toLowerCase())) return json_({ error: name + " is already on the scoreboard." });
       gameListSheet_().appendRow([name, cleanEmoji_(req.emoji)]);
+    } else if (req.action === "say") {
+      if (names.indexOf(req.player) < 0) return json_({ error: "Pick who you are first." });
+      const text = cleanTalk_(req.text);
+      const sh = talkSheet_();
+      const row = sh.getLastRow() + 1;
+      sh.getRange(row, 2, 1, 2).setNumberFormat("@"); // plain text, so nothing typed is treated as a formula
+      sh.getRange(row, 1, 1, 3).setValues([[new Date(), req.player, text]]);
+      sh.getRange(row, 1).setNumberFormat("yyyy-mm-dd hh:mm");
     } else if (req.action === "checkIn") {
       const list = (Array.isArray(req.players) ? req.players : []).filter(n => names.indexOf(n) >= 0);
       const sh = nightsSheet_();
@@ -135,7 +147,8 @@ function readAll_() {
     games: readGames_(),
     nights: readNights_(),
     gameNames: readGameList_(),
-    gameEmojis: readGameEmojis_()
+    gameEmojis: readGameEmojis_(),
+    talk: readTalk_()
   };
 }
 
@@ -173,6 +186,42 @@ function readGames_() {
     });
   }
   return out;
+}
+
+// Newest TALK_SHOWN messages, oldest first
+function readTalk_() {
+  const sh = ss_().getSheetByName(TALK);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const n = sh.getLastRow() - 1;
+  const raw = sh.getRange(2, 1, n, 1).getValues();
+  const disp = sh.getRange(2, 2, n, 2).getDisplayValues();
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const name = String(disp[i][0]).trim(), text = String(disp[i][1]).trim();
+    if (!name && !text) continue;
+    const t = raw[i][0];
+    out.push({ ts: t instanceof Date ? t.getTime() : null, name: name, text: text });
+  }
+  return out.slice(-TALK_SHOWN);
+}
+
+function talkSheet_() {
+  let sh = ss_().getSheetByName(TALK);
+  if (!sh) {
+    sh = ss_().insertSheet(TALK);
+    sh.getRange(1, 1, 1, 3).setValues([["Time", "Player", "Message"]]);
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(3, 420);
+  }
+  return sh;
+}
+
+// Trash talk: one line, 1 to TALK_MAX_CHARS characters
+function cleanTalk_(t) {
+  t = String(t || "").replace(/\s+/g, " ").trim();
+  if (!t) throw new Error("Type a message.");
+  if (t.length > TALK_MAX_CHARS) throw new Error("Keep it under " + TALK_MAX_CHARS + " characters.");
+  return t;
 }
 
 function readNights_() {

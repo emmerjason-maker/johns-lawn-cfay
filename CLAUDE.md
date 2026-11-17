@@ -18,6 +18,11 @@ Fleet Activities Yokosuka (CFAY), Japan.
   the sheet's Games tab column D holds the game (blank = Pushy Dos). Games added
   from the page (＋ Add game) are stored in the sheet's Game List tab (Game, Emoji);
   built-in game emojis are in `CONFIG.gameEmoji`.
+  Trash talk: the sheet's Trash Talk tab (Time, Player, Message) is created
+  automatically by the Apps Script's `say` action ({ player, text }, max 200 chars).
+  The page shows the newest 40 messages and only shows the box when `scriptUrl` is
+  live; localStorage `pd-me` remembers who's talking on each phone. To delete a
+  message, delete its row in the Trash Talk tab.
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
