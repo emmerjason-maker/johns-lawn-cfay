@@ -273,34 +273,58 @@
     }
     .toast .btn { border-color: var(--paper); color: var(--paper); min-height: 36px; padding: 0.2rem 0.9rem; }
 
-    /* Trash talk */
-    .talk { display: grid; gap: 0.6rem; }
+    /* Trash talk: chat-style */
+    .talk { display: grid; gap: 0.7rem; }
     .talk h2 { margin: 0; }
-    .talk-form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .talk-form select, .talk-form input {
-      min-width: 0; min-height: 44px; font: inherit; font-size: 1rem; padding: 0.4rem 0.8rem;
-      border-radius: 999px; border: 2px solid var(--line); background-color: var(--paper); color: var(--ink);
-    }
-    .talk-form select { max-width: 11rem; }
-    .talk-form input { flex: 1; }
-    .talk-form select:focus-visible, .talk-form input:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
-    .talk-quick { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .talk-list {
-      list-style: none; margin: 0; padding: 0; max-height: 22rem; overflow-y: auto;
-      border-top: 1px dashed var(--rule); overscroll-behavior: contain;
+      list-style: none; margin: 0; padding: 0.5rem 0.1rem; max-height: 22rem; overflow-y: auto;
+      display: grid; gap: 0.6rem; align-content: start; overscroll-behavior: contain;
+      border-top: 1px dashed var(--rule); border-bottom: 1px dashed var(--rule);
     }
-    .talk-list li { padding: 0.5rem 0; border-bottom: 1px dashed var(--rule); }
-    .talk-list .t-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
-    .talk-list .t-name { font-family: var(--hand); font-size: 1.3rem; line-height: 1.1; color: var(--c); }
-    .talk-list .t-time { color: var(--muted); font-size: 0.8rem; }
-    .talk-list .t-text { margin: 0.1rem 0 0; overflow-wrap: anywhere; }
-    .talk-list .empty { color: var(--muted); }
+    .talk-list .empty { color: var(--muted); text-align: center; padding: 0.8rem 0; }
+    .t-msg { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 0.5rem; align-items: start; }
+    .t-bubble {
+      padding: 0.35rem 0.75rem 0.45rem; border-radius: 4px 14px 14px 14px;
+      border: 1.5px solid color-mix(in srgb, var(--c) 35%, transparent);
+      background: color-mix(in srgb, var(--c) 7%, var(--paper));
+    }
+    .t-msg.mine .t-bubble { background: color-mix(in srgb, var(--c) 17%, var(--paper)); }
+    .t-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .t-name { font-family: var(--hand); font-size: 1.25rem; line-height: 1.1; color: var(--c); }
+    .t-time { color: var(--muted); font-size: 0.78rem; }
+    .t-text { margin: 0.05rem 0 0; overflow-wrap: anywhere; }
+    .av.mini { width: 32px; height: 32px; }
+    .av.mini .av-in { font-size: 1rem; border-width: 2px; }
+    .av.mini .initial { font-size: 1.05rem; }
+    /* step 1: tap your name */
+    .talk-pick { display: grid; gap: 0.5rem; }
+    .talk-pick p { margin: 0; font-weight: 700; }
+    .talk-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .talk-chips .btn { border-color: var(--c); color: var(--c); font-family: var(--hand); font-size: 1.2rem; font-weight: 400; padding: 0.3rem 0.9rem 0.3rem 0.35rem; }
+    .talk-chips .av.mini { width: 30px; height: 30px; }
+    /* step 2: posting as… + message bar */
+    .talk-me { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; color: var(--muted); }
+    .talk-me .t-name { font-size: 1.3rem; }
+    .talk-quick-label { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    .talk-quick { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .talk-bar {
+      display: flex; align-items: center; gap: 0.4rem; padding: 4px 4px 4px 1rem;
+      border: 2px solid var(--line); border-radius: 999px; background: var(--paper);
+    }
+    .talk-bar:focus-within { border-color: var(--indigo); }
+    .talk-bar input { flex: 1; min-width: 0; min-height: 40px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 1.05rem; outline: none; }
+    .talk-bar .send {
+      flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer;
+      display: grid; place-items: center; font-size: 1.15rem; background: var(--indigo); color: var(--paper);
+    }
+    .talk-bar .send:disabled { opacity: 0.5; cursor: default; }
+    .talk-bar .send:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
+    .talk-nudge { justify-self: start; margin-top: 0.3rem; border-color: var(--indigo); color: var(--indigo); font-weight: 700; }
 
     /* Confetti */
     #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 
     @media (max-width: 420px) {
-      .talk-form select { flex: 1 1 100%; max-width: none; }
       .board::before { left: 2rem; }
       .row { grid-template-columns: 2rem 44px minmax(0, 1fr); gap: 0 0.6rem; }
       .av { width: 44px; height: 44px; }
@@ -357,6 +381,7 @@
       </div>
       <h1 id="title">Game Night Scoreboard</h1>
       <p class="sub" id="summary">Loading scores…</p>
+      <button type="button" class="btn small talk-nudge" id="talkNudge" hidden></button>
       <div class="status-row">
         <p class="status" id="status" role="status"></p>
         <button type="button" class="btn small" id="themeBtn">🌓 Auto</button>
@@ -413,20 +438,27 @@
 
     <section class="talk" id="talk" hidden aria-labelledby="talkTitle">
       <h2 id="talkTitle">🗑️ Trash talk</h2>
-      <form class="talk-form" id="talkForm">
-        <select id="talkWho" aria-label="Who are you?"><option value="">Who are you?</option></select>
-        <input id="talkText" type="text" maxlength="200" placeholder="Say something…" autocomplete="off" aria-label="Message" />
-        <button type="submit" class="btn" id="talkSend">Send</button>
-      </form>
-      <div class="talk-quick" id="talkQuick">
-        <button type="button" class="btn small">🔥 Too easy</button>
-        <button type="button" class="btn small">😂 Nice try</button>
-        <button type="button" class="btn small">🧂 Salty?</button>
-        <button type="button" class="btn small">👀 Watch your back</button>
-        <button type="button" class="btn small">🫡 GG</button>
-        <button type="button" class="btn small">🗑️ Trash</button>
-      </div>
       <ul class="talk-list" id="talkList" aria-live="polite"></ul>
+      <div class="talk-pick" id="talkPick">
+        <p>Tap your name to start talking 👇</p>
+        <div class="talk-chips" id="talkChips"></div>
+      </div>
+      <div id="talkCompose" hidden>
+        <div class="talk-me">Posting as <span class="av mini" id="talkMeAv"></span> <span class="t-name" id="talkMeName"></span> · <button type="button" class="btn link" id="talkChange">change</button></div>
+        <p class="talk-quick-label">Quick replies (tap to add, then send)</p>
+        <div class="talk-quick" id="talkQuick">
+          <button type="button" class="btn small">🔥 Too easy</button>
+          <button type="button" class="btn small">😂 Nice try</button>
+          <button type="button" class="btn small">🧂 Salty?</button>
+          <button type="button" class="btn small">👀 Watch your back</button>
+          <button type="button" class="btn small">🫡 GG</button>
+          <button type="button" class="btn small">🗑️ Trash</button>
+        </div>
+        <form class="talk-bar" id="talkForm">
+          <input id="talkText" type="text" maxlength="200" placeholder="Talk some trash…" autocomplete="off" enterkeyhint="send" aria-label="Your message" />
+          <button type="submit" class="send" id="talkSend" aria-label="Send">➤</button>
+        </form>
+      </div>
     </section>
 
     <section aria-labelledby="overallTitle">
@@ -1347,8 +1379,9 @@
     }
     $("shareBtn").addEventListener("click", shareNight);
 
-    /* ---------- Trash talk ---------- */
-    let talkNames = "";
+    /* ---------- Trash talk (chat-style) ---------- */
+    let talkMe = storeGet("pd-me") || "";   // who's posting on this phone
+    let talkScrollToEnd = true;            // jump to the newest message on first show and after sending
     function talkWhen(ts) {
       if (!ts) return "";
       const d = new Date(ts);
@@ -1356,64 +1389,113 @@
       if (night === tonightKey()) return prettyTime(ts);
       return `${d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}, ${prettyTime(ts)}`;
     }
+    function lastTalkTs(data) {
+      const t = (data && data.talk) || [];
+      return t.length ? (t[t.length - 1].ts || 0) : 0;
+    }
     function renderTalk(data, players) {
       const show = !!(data.live && data.talk);
       $("talk").hidden = !show;
-      if (!show) return;
+      if (!show) { $("talkNudge").hidden = true; return; }
+      const byName = Object.fromEntries(players.map(p => [p.name, p]));
+      if (talkMe && !byName[talkMe]) talkMe = "";
 
-      // Player picker: rebuild only when the player list changes, keeping the current choice
-      const names = players.map(p => p.name).join("\n");
-      if (names !== talkNames) {
-        talkNames = names;
-        const sel = $("talkWho");
-        const keep = sel.value || storeGet("pd-me") || "";
-        sel.innerHTML = `<option value="">Who are you?</option>`;
-        for (const p of players) {
-          const o = document.createElement("option");
-          o.value = p.name; o.textContent = p.name;
-          sel.appendChild(o);
-        }
-        sel.value = players.some(p => p.name === keep) ? keep : "";
+      // Step 1 (who are you?) or step 2 (posting as… + message bar)
+      $("talkPick").hidden = !!talkMe;
+      $("talkCompose").hidden = !talkMe;
+      const chips = $("talkChips");
+      chips.innerHTML = "";
+      for (const p of players) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "btn"; b.style.setProperty("--c", p.color);
+        const av = document.createElement("span"); av.className = "av mini"; fillAvatar(av, p, false);
+        b.append(av, document.createTextNode(p.name));
+        b.addEventListener("click", () => pickTalker(p.name));
+        chips.appendChild(b);
+      }
+      if (talkMe) {
+        const me = byName[talkMe];
+        $("talkMeAv").style.setProperty("--c", me.color);
+        fillAvatar($("talkMeAv"), me, false);
+        $("talkMeName").textContent = me.name;
+        $("talkMeName").style.setProperty("--c", me.color);
       }
       $("talkSend").disabled = busy;
-      for (const b of $("talkQuick").querySelectorAll("button")) b.disabled = busy;
 
-      // Messages, newest first
-      const colorOf = Object.fromEntries(players.map(p => [p.name, p.color]));
+      // Messages: oldest at the top, newest just above the message bar
       const list = $("talkList");
+      const nearEnd = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
       list.innerHTML = "";
       if (!data.talk.length) {
         const li = document.createElement("li");
         li.className = "empty";
         li.textContent = "No trash talk yet. Somebody start it.";
         list.appendChild(li);
-        return;
       }
-      for (const m of data.talk.slice().reverse()) {
+      for (const m of data.talk) {
+        const p = byName[m.name] || { name: m.name, avatar: "", color: "var(--ink)" };
         const li = document.createElement("li");
-        li.style.setProperty("--c", colorOf[m.name] || "var(--ink)");
+        li.className = "t-msg" + (m.name === talkMe ? " mine" : "");
+        li.style.setProperty("--c", p.color);
+        const av = document.createElement("span"); av.className = "av mini"; fillAvatar(av, p, false);
+        const bubble = document.createElement("div"); bubble.className = "t-bubble";
         const head = document.createElement("div"); head.className = "t-head";
         const who = document.createElement("span"); who.className = "t-name"; who.textContent = m.name;
         const when = document.createElement("span"); when.className = "t-time"; when.textContent = talkWhen(m.ts);
         head.append(who, when);
         const text = document.createElement("p"); text.className = "t-text"; text.textContent = m.text;
-        li.append(head, text);
+        bubble.append(head, text);
+        li.append(av, bubble);
         list.appendChild(li);
       }
+      if (talkScrollToEnd || nearEnd) { list.scrollTop = list.scrollHeight; talkScrollToEnd = false; }
+
+      // "💬 N new messages" nudge by the summary line
+      let seen = Number(storeGet("pd-talk-seen") || 0);
+      if (!seen) { seen = lastTalkTs(data); storeSet("pd-talk-seen", String(seen)); } // first visit: start fresh
+      const fresh = data.talk.filter(m => m.ts && m.ts > seen && m.name !== talkMe).length;
+      $("talkNudge").hidden = fresh === 0;
+      $("talkNudge").textContent = `💬 ${fresh} new trash talk ${fresh === 1 ? "message" : "messages"}`;
     }
 
-    async function sendTalk(text) {
-      const player = $("talkWho").value;
-      if (!player) { toast("Pick who you are first.", false); $("talkWho").focus(); return; }
-      text = (text || "").replace(/\s+/g, " ").trim();
-      if (!text) { $("talkText").focus(); return; }
-      storeSet("pd-me", player);
-      const ok = await run({ action: "say", player, text }, null, false);
-      if (ok) { $("talkText").value = ""; $("talkList").scrollTop = 0; }
+    function markTalkSeen() {
+      if (!DATA || !DATA.talk) return;
+      storeSet("pd-talk-seen", String(lastTalkTs(DATA)));
+      $("talkNudge").hidden = true;
     }
-    $("talkForm").addEventListener("submit", (e) => { e.preventDefault(); sendTalk($("talkText").value); });
-    for (const b of $("talkQuick").querySelectorAll("button")) b.addEventListener("click", () => sendTalk(b.textContent));
-    $("talkWho").addEventListener("change", () => { if ($("talkWho").value) storeSet("pd-me", $("talkWho").value); });
+    // Mark messages as seen once the trash talk box is on screen
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => { if (entries.some(e => e.isIntersecting)) markTalkSeen(); }, { threshold: 0.3 })
+        .observe($("talkList"));
+    }
+    $("talkNudge").addEventListener("click", () => {
+      $("talk").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      markTalkSeen();
+    });
+
+    function pickTalker(name) {
+      talkMe = name; storeSet("pd-me", name);
+      if (DATA) render(DATA);
+      $("talkText").focus();
+    }
+    $("talkChange").addEventListener("click", () => { talkMe = ""; if (DATA) render(DATA); });
+
+    async function sendTalk() {
+      if (!talkMe) { toast("Tap your name first.", false); return; }
+      const text = $("talkText").value.replace(/\s+/g, " ").trim();
+      if (!text) { $("talkText").focus(); return; }
+      storeSet("pd-me", talkMe);
+      talkScrollToEnd = true;
+      const ok = await run({ action: "say", player: talkMe, text }, null, false);
+      if (ok) { $("talkText").value = ""; markTalkSeen(); }
+    }
+    $("talkForm").addEventListener("submit", (e) => { e.preventDefault(); sendTalk(); });
+    // Quick replies drop their text into the box so you can tweak it before sending
+    for (const b of $("talkQuick").querySelectorAll("button")) b.addEventListener("click", () => {
+      const box = $("talkText");
+      box.value = (box.value ? box.value.trim() + " " : "") + b.textContent;
+      box.focus();
+    });
 
     /* ---------- Light / dark switch (remembered on this phone only) ---------- */
     const THEMES = [

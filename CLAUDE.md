@@ -22,7 +22,10 @@ Fleet Activities Yokosuka (CFAY), Japan.
   automatically by the Apps Script's `say` action ({ player, text }, max 200 chars).
   The page shows the newest 40 messages and only shows the box when `scriptUrl` is
   live; localStorage `pd-me` remembers who's talking on each phone. To delete a
-  message, delete its row in the Trash Talk tab.
+  message, delete its row in the Trash Talk tab. The box is chat-style: tap your
+  name (avatar chips), then a message bar with ➤; quick replies fill the bar
+  rather than sending. A "💬 N new" nudge under the summary uses localStorage
+  `pd-talk-seen` (time of the newest message seen on that phone).
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
