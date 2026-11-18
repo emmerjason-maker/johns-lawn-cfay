@@ -312,6 +312,17 @@
       border: 2px solid var(--line); border-radius: 999px; background: var(--paper);
     }
     .talk-bar:focus-within { border-color: var(--indigo); }
+    .talk-bar { padding-left: 4px; }
+    .talk-bar .at {
+      flex: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font: inherit; font-weight: 700; font-size: 1.15rem;
+      border: 1.5px solid var(--line); background: transparent; color: var(--indigo); display: grid; place-items: center;
+    }
+    .talk-bar .at[aria-expanded="true"] { background: var(--indigo); color: var(--paper); border-color: var(--indigo); }
+    .talk-bar .at:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
+    .talk-mentions { display: grid; gap: 0.4rem; }
+    .t-at { font-weight: 700; color: var(--mc); }
+    .t-msg.at-me .t-bubble { border: 2px solid var(--sun); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sun) 18%, transparent); }
+    .t-msg.at-me .t-head::after { content: "📣 you"; font-size: 0.75rem; font-weight: 700; color: var(--sun); }
     .talk-bar input { flex: 1; min-width: 0; min-height: 40px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 1.05rem; outline: none; }
     .talk-bar .send {
       flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer;
@@ -320,6 +331,7 @@
     .talk-bar .send:disabled { opacity: 0.5; cursor: default; }
     .talk-bar .send:focus-visible { outline: 3px solid var(--p1); outline-offset: 2px; }
     .talk-nudge { justify-self: start; margin-top: 0.3rem; border-color: var(--indigo); color: var(--indigo); font-weight: 700; }
+    .talk-nudge.callout { border-color: var(--sun); background: var(--sun); color: #FFFFFF; }
 
     /* Confetti */
     #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
@@ -454,7 +466,12 @@
           <button type="button" class="btn small">🫡 GG</button>
           <button type="button" class="btn small">🗑️ Trash</button>
         </div>
+        <div class="talk-mentions" id="talkMentions" hidden>
+          <p class="talk-quick-label">Call someone out:</p>
+          <div class="talk-chips" id="talkMentionChips"></div>
+        </div>
         <form class="talk-bar" id="talkForm">
+          <button type="button" class="at" id="talkAt" aria-label="Mention someone" aria-expanded="false">@</button>
           <input id="talkText" type="text" maxlength="200" placeholder="Talk some trash…" autocomplete="off" enterkeyhint="send" aria-label="Your message" />
           <button type="submit" class="send" id="talkSend" aria-label="Send">➤</button>
         </form>
@@ -1389,6 +1406,38 @@
       if (night === tonightKey()) return prettyTime(ts);
       return `${d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}, ${prettyTime(ts)}`;
     }
+    // @mentions: "@Name" for any player, or "@everyone"
+    const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    function mentionRe(players) {
+      const names = players.map(p => p.name).concat("everyone").sort((a, b) => b.length - a.length);
+      return new RegExp("@(" + names.map(escRe).join("|") + ")(?![\\w])", "gi");
+    }
+    function mentionsOf(text, players) {
+      const out = new Set();
+      for (const m of String(text).matchAll(mentionRe(players))) out.add(m[1].toLowerCase());
+      return out;
+    }
+    function callsOut(msg, me, players) {
+      if (!me || msg.name === me) return false;
+      const at = mentionsOf(msg.text, players);
+      return at.has(me.toLowerCase()) || at.has("everyone");
+    }
+    // Message text with @mentions in the mentioned player's color (all text via textContent)
+    function fillTalkText(el, text, players, byLower) {
+      el.textContent = "";
+      const re = mentionRe(players); let last = 0, m;
+      while ((m = re.exec(text))) {
+        if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const span = document.createElement("span");
+        span.className = "t-at"; span.textContent = m[0];
+        const p = byLower[m[1].toLowerCase()];
+        span.style.setProperty("--mc", p ? p.color : "var(--indigo)");
+        el.appendChild(span);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+    }
+
     function lastTalkTs(data) {
       const t = (data && data.talk) || [];
       return t.length ? (t[t.length - 1].ts || 0) : 0;
@@ -1398,7 +1447,25 @@
       $("talk").hidden = !show;
       if (!show) { $("talkNudge").hidden = true; return; }
       const byName = Object.fromEntries(players.map(p => [p.name, p]));
+      const byLower = Object.fromEntries(players.map(p => [p.name.toLowerCase(), p]));
       if (talkMe && !byName[talkMe]) talkMe = "";
+
+      // @ picker chips: everyone else, plus @everyone
+      const mc = $("talkMentionChips");
+      mc.innerHTML = "";
+      for (const p of players.filter(p => p.name !== talkMe)) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "btn"; b.style.setProperty("--c", p.color);
+        const av = document.createElement("span"); av.className = "av mini"; fillAvatar(av, p, false);
+        b.append(av, document.createTextNode("@" + p.name));
+        b.addEventListener("click", () => insertMention(p.name));
+        mc.appendChild(b);
+      }
+      const all = document.createElement("button");
+      all.type = "button"; all.className = "btn"; all.style.setProperty("--c", "var(--indigo)");
+      all.textContent = "📣 @everyone";
+      all.addEventListener("click", () => insertMention("everyone"));
+      mc.appendChild(all);
 
       // Step 1 (who are you?) or step 2 (posting as… + message bar)
       $("talkPick").hidden = !!talkMe;
@@ -1435,7 +1502,7 @@
       for (const m of data.talk) {
         const p = byName[m.name] || { name: m.name, avatar: "", color: "var(--ink)" };
         const li = document.createElement("li");
-        li.className = "t-msg" + (m.name === talkMe ? " mine" : "");
+        li.className = "t-msg" + (m.name === talkMe ? " mine" : "") + (callsOut(m, talkMe, players) ? " at-me" : "");
         li.style.setProperty("--c", p.color);
         const av = document.createElement("span"); av.className = "av mini"; fillAvatar(av, p, false);
         const bubble = document.createElement("div"); bubble.className = "t-bubble";
@@ -1443,7 +1510,7 @@
         const who = document.createElement("span"); who.className = "t-name"; who.textContent = m.name;
         const when = document.createElement("span"); when.className = "t-time"; when.textContent = talkWhen(m.ts);
         head.append(who, when);
-        const text = document.createElement("p"); text.className = "t-text"; text.textContent = m.text;
+        const text = document.createElement("p"); text.className = "t-text"; fillTalkText(text, m.text, players, byLower);
         bubble.append(head, text);
         li.append(av, bubble);
         list.appendChild(li);
@@ -1453,9 +1520,17 @@
       // "💬 N new messages" nudge by the summary line
       let seen = Number(storeGet("pd-talk-seen") || 0);
       if (!seen) { seen = lastTalkTs(data); storeSet("pd-talk-seen", String(seen)); } // first visit: start fresh
-      const fresh = data.talk.filter(m => m.ts && m.ts > seen && m.name !== talkMe).length;
+      const freshMsgs = data.talk.filter(m => m.ts && m.ts > seen && m.name !== talkMe);
+      const callouts = freshMsgs.filter(m => callsOut(m, talkMe, players));
+      const fresh = freshMsgs.length;
       $("talkNudge").hidden = fresh === 0;
-      $("talkNudge").textContent = `💬 ${fresh} new trash talk ${fresh === 1 ? "message" : "messages"}`;
+      if (callouts.length === 1) $("talkNudge").textContent = `📣 ${callouts[0].name} called you out!`;
+      else if (callouts.length > 1) {
+        const who = [...new Set(callouts.map(m => m.name))];
+        $("talkNudge").textContent = who.length === 1 ? `📣 ${who[0]} called you out ${callouts.length} times!` : `📣 You got called out ${callouts.length} times!`;
+      }
+      else $("talkNudge").textContent = `💬 ${fresh} new trash talk ${fresh === 1 ? "message" : "messages"}`;
+      $("talkNudge").classList.toggle("callout", callouts.length > 0);
     }
 
     function markTalkSeen() {
@@ -1473,6 +1548,25 @@
       markTalkSeen();
     });
 
+    // @ button: show everyone's chips; tapping one drops "@Name " into the message at the cursor
+    function toggleMentions(open) {
+      const show = open === undefined ? $("talkMentions").hidden : open;
+      $("talkMentions").hidden = !show;
+      $("talkAt").setAttribute("aria-expanded", String(show));
+    }
+    function insertMention(name) {
+      const box = $("talkText");
+      const at = box.selectionStart == null ? box.value.length : box.selectionStart;
+      const end = box.selectionEnd == null ? at : box.selectionEnd;
+      const before = box.value.slice(0, at), after = box.value.slice(end);
+      const tag = (before && !/\s$/.test(before) ? " " : "") + "@" + name + " ";
+      box.value = (before + tag + after).slice(0, 200);
+      const pos = Math.min(200, before.length + tag.length);
+      box.focus(); box.setSelectionRange(pos, pos);
+      toggleMentions(false);
+    }
+    $("talkAt").addEventListener("click", () => toggleMentions());
+
     function pickTalker(name) {
       talkMe = name; storeSet("pd-me", name);
       if (DATA) render(DATA);
@@ -1487,7 +1581,7 @@
       storeSet("pd-me", talkMe);
       talkScrollToEnd = true;
       const ok = await run({ action: "say", player: talkMe, text }, null, false);
-      if (ok) { $("talkText").value = ""; markTalkSeen(); }
+      if (ok) { $("talkText").value = ""; toggleMentions(false); markTalkSeen(); }
     }
     $("talkForm").addEventListener("submit", (e) => { e.preventDefault(); sendTalk(); });
     // Quick replies drop their text into the box so you can tweak it before sending

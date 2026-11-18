@@ -26,6 +26,10 @@ Fleet Activities Yokosuka (CFAY), Japan.
   name (avatar chips), then a message bar with ➤; quick replies fill the bar
   rather than sending. A "💬 N new" nudge under the summary uses localStorage
   `pd-talk-seen` (time of the newest message seen on that phone).
+  @mentions: the @ button in the message bar inserts "@Name " (or @everyone);
+  mentions show in that player's color, and a message calling out the person on
+  this phone (pd-me) is highlighted and turns the nudge into "📣 X called you out!".
+  Mentions are plain text in the sheet; no script change involved.
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
