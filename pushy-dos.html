@@ -248,6 +248,7 @@
       flex: 1; min-width: 0; min-height: 44px; font: inherit; font-size: 1.2rem; padding: 0.4rem 0.8rem;
       border-radius: 999px; border: 2px solid var(--rule); background: transparent; color: var(--ink);
     }
+    .btn.danger { color: var(--sun); }
     .ask-fields { display: grid; gap: 0.5rem; }
     .emoji-row input, .ask-fields input {
       min-width: 0; min-height: 44px; font: inherit; font-size: 1.2rem; padding: 0.4rem 0.8rem;
@@ -481,7 +482,7 @@
       <p class="roster status"><span id="rosterText"></span> <button type="button" class="btn small" id="rosterBtn">👥 Who's playing tonight?</button></p>
       <div class="win-buttons" id="winButtons"></div>
       <div class="record-foot">
-        <span class="status">Tap a player's circle below for their picture or MIA.</span>
+        <span class="status">Tap a player's circle below for their picture, MIA or to remove them.</span>
         <button type="button" class="btn small" id="undoBtn">↩︎ Undo last game</button>
       </div>
     </section>
@@ -587,6 +588,7 @@
       </div>
       <button type="button" class="btn ghost" id="avRemove">Remove picture</button>
       <button type="button" class="btn ghost" id="avMia">👻 Mark MIA</button>
+      <button type="button" class="btn ghost danger" id="avDelete">🗑️ Remove from scoreboard</button>
       <button type="submit" class="btn ghost" value="cancel">Close</button>
       <p class="status" id="avMsg" role="status"></p>
     </form>
@@ -1366,7 +1368,7 @@
     let avPlayer = null;
     function openAvatar(p) {
       avPlayer = p;
-      $("avTitle").textContent = `${p.name}'s picture`;
+      $("avTitle").textContent = p.name;
       $("avPreview").style.setProperty("--c", p.color);
       fillAvatar($("avPreview"), p, false);
       $("avEmoji").value = p.avatar && !isImage(p.avatar) ? p.avatar : "";
@@ -1414,6 +1416,21 @@
       saveAvatar(v);
     });
     $("avRemove").addEventListener("click", () => saveAvatar(""));
+    $("avDelete").addEventListener("click", async () => {
+      const p = avPlayer;
+      const wins = (DATA && DATA.games ? DATA.games : []).filter(g => g.winner === p.name).length;
+      $("avDialog").close();
+      const ok = await ask({
+        title: `Remove ${p.name}?`,
+        text: wins
+          ? `${p.name} leaves the standings and the win buttons. Their ${wins} ${wins === 1 ? "win stays" : "wins stay"} in the history, and adding ${p.name} back later brings ${wins === 1 ? "it" : "them"} back.`
+          : `${p.name} leaves the standings and the win buttons. You can add them back any time.`,
+        ok: "Remove"
+      });
+      if (!ok) return;
+      if (talkMe === p.name) { talkMe = ""; storeSet("pd-me", ""); }
+      run({ action: "removePlayer", player: p.name }, `🗑️ ${p.name} removed.`, false);
+    });
     $("avMia").addEventListener("click", async () => {
       const goingMia = !avPlayer.status;
       $("avMsg").textContent = "Saving…";

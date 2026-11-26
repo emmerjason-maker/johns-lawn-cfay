@@ -3,7 +3,7 @@
  *
  * Lets pushy-dos.html read the scores live and write back to the Google Sheet:
  * record a win, undo the last game, set a player's avatar, check in
- * who's playing tonight, add a player, and mark a player MIA or back.
+ * who's playing tonight, add or remove a player, and mark a player MIA or back.
  * Wins are recorded per game (Pushy Dos, Rummikub, ...), and new games can be added.
  * Players can also post trash talk, stored in the "Trash Talk" tab.
  * Scored games (like Golf) keep hole-by-hole scorecards in the "Scorecards" tab;
@@ -105,6 +105,19 @@ function doPost(e) {
       for (let i = 0; i < col.length; i++) if (!String(col[i][0]).trim()) { row = i + 2; break; }
       if (row < 0) return json_({ error: "The scoreboard is full (" + MAX_PLAYERS + " players)." });
       sh.getRange(row, 1).setValue(name);
+    } else if (req.action === "removePlayer") {
+      const p = players.filter(x => x.name === req.player)[0];
+      if (!p) return json_({ error: "Unknown player." });
+      if (readCards_().some(c => c.status === "active" && c.players.indexOf(p.name) >= 0)) {
+        return json_({ error: p.name + " is in a round that's still going. Finish or cancel it first." });
+      }
+      // Clear only the name, avatar and status cells; the Wins/Rank formulas in the row stay put,
+      // and the empty slot is reused by the next added player. Past games stay in the Games tab.
+      const sh = ss_().getSheetByName(STANDINGS);
+      ["player", "avatar", "status"].forEach(h => {
+        const col = headerIndex_(STANDINGS, h);
+        if (col >= 0) sh.getRange(p.row, col + 1).clearContent();
+      });
     } else if (req.action === "setStatus") {
       const p = players.filter(x => x.name === req.player)[0];
       if (!p) return json_({ error: "Unknown player." });

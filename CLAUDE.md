@@ -40,6 +40,11 @@ Fleet Activities Yokosuka (CFAY), Japan.
   section#rules) shown only on the Pushy Dos tab. Standard Pusoy Dos order:
   cards 3 low → 2 high, suits ♣ < ♠ < ♥ < ♦, five-card hands straight < flush <
   full house < four of a kind < straight flush. Edit there for house rules.
+  Removing a player: tap their circle → 🗑️ Remove from scoreboard (Apps Script
+  `removePlayer`). It clears only the Player/Avatar/Status cells in Standings (the
+  Wins/Rank formulas stay; the empty slot is reused by the next added player).
+  Their past games stay in the Games tab, so re-adding the same name restores
+  their record. Blocked while they're in an active scorecard round.
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
