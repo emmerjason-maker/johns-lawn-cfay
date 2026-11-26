@@ -1124,25 +1124,35 @@
     /* ---------- Celebrations ---------- */
     const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Celebration: a shower of sakura petals drifting down the screen
-    function confetti() {
+    // Celebration: a shower of sakura petals covering the screen.
+    // Calls stack: a new shower adds petals to one already falling instead of restarting it.
+    const PETAL_LIFE = 4600;
+    let petals = [], petalsRunning = false;
+    function confetti(count = 150) {
       if (reduceMotion) return;
+      const now = performance.now();
+      const pinks = ["#F7B6C8", "#F4A6BD", "#FBCFDC", "#F28FAD", "#FDE2EA"];
+      for (let i = 0; i < count; i++) {
+        petals.push({
+          born: now,
+          x: Math.random() * innerWidth,
+          // spread from above the screen down to its middle, so the screen fills quickly
+          y: -30 - Math.random() * innerHeight * 0.9 + (i % 3 === 0 ? Math.random() * innerHeight * 0.5 : 0),
+          vy: 1.6 + Math.random() * 2.2,
+          sway: 0.8 + Math.random() * 1.6, phase: Math.random() * Math.PI * 2, drift: 0.2 + Math.random() * 0.7,
+          r: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.06,
+          flip: Math.random() * Math.PI * 2, vflip: 0.04 + Math.random() * 0.06,
+          size: 7 + Math.random() * 8, c: pinks[Math.floor(Math.random() * pinks.length)]
+        });
+      }
+      if (petalsRunning) return;
+      petalsRunning = true;
       const cv = $("confetti");
       const ctx = cv.getContext("2d");
       const dpr = window.devicePixelRatio || 1;
       cv.hidden = false;
       cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const pinks = ["#F7B6C8", "#F4A6BD", "#FBCFDC", "#F28FAD", "#FDE2EA"];
-      const DURATION = 4200;
-      const petals = Array.from({ length: 90 }, () => ({
-        x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6,
-        vy: 1.4 + Math.random() * 1.8,           // gentle fall
-        sway: 0.8 + Math.random() * 1.6, phase: Math.random() * Math.PI * 2, drift: 0.3 + Math.random() * 0.6,
-        r: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.06,
-        flip: Math.random() * Math.PI * 2, vflip: 0.04 + Math.random() * 0.06,
-        size: 7 + Math.random() * 7, c: pinks[Math.floor(Math.random() * pinks.length)]
-      }));
       function petal(size) {   // notched sakura petal
         ctx.beginPath();
         ctx.moveTo(0, size);
@@ -1152,19 +1162,20 @@
         ctx.bezierCurveTo(-size * 0.75, -size * 0.75, -size * 0.9, size * 0.4, 0, size);
         ctx.fill();
       }
-      const start = performance.now();
-      (function frame(now) {
-        const t = now - start;
+      (function frame(t) {
         ctx.clearRect(0, 0, innerWidth, innerHeight);
-        const fade = t > DURATION - 900 ? Math.max(0, (DURATION - t) / 900) : 1;
+        petals = petals.filter(p => t - p.born < PETAL_LIFE && p.y < innerHeight + 40);
         for (const p of petals) {
+          const age = t - p.born;
+          const fade = age > PETAL_LIFE - 900 ? Math.max(0, (PETAL_LIFE - age) / 900) : 1;
           p.y += p.vy; p.phase += 0.04; p.x += Math.sin(p.phase) * p.sway + p.drift; p.r += p.vr; p.flip += p.vflip;
           ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(Math.cos(p.flip), 1); // flutter
           ctx.globalAlpha = 0.9 * fade;
           ctx.fillStyle = p.c; petal(p.size); ctx.restore();
         }
-        if (t < DURATION) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, innerWidth, innerHeight); cv.hidden = true; }
-      })(start);
+        if (petals.length) requestAnimationFrame(frame);
+        else { ctx.clearRect(0, 0, innerWidth, innerHeight); cv.hidden = true; petalsRunning = false; }
+      })(now);
     }
 
     function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -1258,8 +1269,9 @@
       }
     }
 
-    function recordWin(name, game) {
-      run({ action: "addWin", winner: name, game }, `${game} win added for ${name}.`, true);
+    async function recordWin(name, game) {
+      const ok = await run({ action: "addWin", winner: name, game }, `${game} win added for ${name}.`, true);
+      if (ok) confetti();   // 🌸 every win gets a petal shower
     }
 
     async function addWin(name) {
@@ -1646,8 +1658,9 @@
         ok: "Finish"
       });
       if (!ok) return;
-      run({ action: "finishCard", id: card.id },
+      const done = await run({ action: "finishCard", id: card.id },
         `${emojiOf(card.game)} ${winners.length > 1 ? `${joinNames(winners)} tie` : `${winners[0]} wins`} with ${low}!`, false);
+      if (done) confetti();
     }
 
     /* ---------- Trash talk (chat-style) ---------- */
