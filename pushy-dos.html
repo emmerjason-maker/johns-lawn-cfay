@@ -273,6 +273,21 @@
     }
     .toast .btn { border-color: var(--paper); color: var(--paper); min-height: 36px; padding: 0.2rem 0.9rem; }
 
+    /* Pushy Dos winning hands reference */
+    .rules details { border: 1.5px solid var(--line); border-radius: 14px; padding: 0.2rem 1rem; }
+    .rules summary { cursor: pointer; font-family: var(--hand); font-size: 1.45rem; color: var(--indigo); padding: 0.45rem 0; list-style-position: inside; }
+    .rules summary .status { font-family: var(--body); font-size: 0.85rem; }
+    .rules details[open] summary .status { display: none; }
+    .rules-body { display: grid; gap: 0.35rem; padding-bottom: 0.8rem; }
+    .rules-body p { margin: 0; }
+    .rules-h { margin-top: 0.5rem !important; font-weight: 700; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .rules .cards { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+    .rules .hands { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.35rem; }
+    .rules .eg { display: block; color: var(--muted); font-size: 0.92rem; }
+    .rules .rd { color: var(--sun); font-weight: 700; white-space: nowrap; }
+    .rules .bk { color: var(--ink); font-weight: 700; white-space: nowrap; }
+    .rules-note { margin-top: 0.4rem !important; font-size: 0.92rem; color: var(--muted); }
+
     /* Scorecard (Golf and other low-score-wins games) */
     .card { display: grid; gap: 0.7rem; }
     .card h2 { margin: 0; }
@@ -469,6 +484,33 @@
         <span class="status">Tap a player's circle below for their picture or MIA.</span>
         <button type="button" class="btn small" id="undoBtn">↩︎ Undo last game</button>
       </div>
+    </section>
+
+    <section class="rules" id="rules" hidden aria-label="Pushy Dos winning hands">
+      <details>
+        <summary>📜 Winning hands <span class="status">(tap to open)</span></summary>
+        <div class="rules-body">
+          <p class="rules-h">Card order, low to high</p>
+          <p class="cards">3 · 4 · 5 · 6 · 7 · 8 · 9 · 10 · J · Q · K · A · <b>2</b></p>
+          <p class="rules-h">Suit order, low to high</p>
+          <p class="cards"><span class="bk">♣ Clubs</span> · <span class="bk">♠ Spades</span> · <span class="rd">♥ Hearts</span> · <span class="rd">♦ Diamonds</span></p>
+          <p class="rules-h">Small hands (play the same kind to beat it)</p>
+          <ol class="hands">
+            <li><b>Single</b> <span class="eg">e.g. <span class="bk">K♠</span></span></li>
+            <li><b>Pair</b> <span class="eg">e.g. <span class="rd">7♥</span> <span class="bk">7♣</span></span></li>
+            <li><b>Three of a kind</b> <span class="eg">e.g. <span class="bk">9♣</span> <span class="rd">9♦</span> <span class="bk">9♠</span></span></li>
+          </ol>
+          <p class="rules-h">Five-card hands, lowest to highest</p>
+          <ol class="hands">
+            <li><b>Straight</b> <span class="eg">five in a row: <span class="bk">5♣</span> <span class="rd">6♥</span> <span class="bk">7♠</span> <span class="rd">8♦</span> <span class="bk">9♣</span></span></li>
+            <li><b>Flush</b> <span class="eg">five of one suit: <span class="rd">3♥ 8♥ 10♥ J♥ A♥</span></span></li>
+            <li><b>Full house</b> <span class="eg">three of a kind + a pair: <span class="bk">Q♣ Q♠</span> <span class="rd">Q♦ 4♥</span> <span class="bk">4♠</span></span></li>
+            <li><b>Four of a kind</b> <span class="eg">plus any card: <span class="bk">J♣ J♠</span> <span class="rd">J♥ J♦</span> <span class="bk">5♣</span></span></li>
+            <li><b>Straight flush</b> 👑 <span class="eg">five in a row, one suit: <span class="rd">9♦ 10♦ J♦ Q♦ K♦</span></span></li>
+          </ol>
+          <p class="rules-note">Same kind of hand? The higher top card wins; if those match, the higher suit wins. Highest single in the game: <span class="rd">2♦</span>.</p>
+        </div>
+      </details>
     </section>
 
     <section class="night" id="night" hidden aria-labelledby="nightTitle">
@@ -1074,6 +1116,7 @@
 
       renderTalk(data, players);
       renderCard(data, players, roster);
+      $("rules").hidden = currentGame !== "Pushy Dos";
 
       return { king, streak: streaks.current, champ };
     }

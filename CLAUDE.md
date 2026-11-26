@@ -36,6 +36,10 @@ Fleet Activities Yokosuka (CFAY), Japan.
   Scores as JSON, Finished) via `startCard`, `setScore`, `finishCard` and
   `cancelCard`. One active round per game. Finishing writes the lowest total to
   the Games tab as that game's win (a tie gives each tied player a win).
+  Pushy Dos winning hands: a collapsible "📜 Winning hands" card (static markup,
+  section#rules) shown only on the Pushy Dos tab. Standard Pusoy Dos order:
+  cards 3 low → 2 high, suits ♣ < ♠ < ♥ < ♦, five-card hands straight < flush <
+  full house < four of a kind < straight flush. Edit there for house rules.
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
