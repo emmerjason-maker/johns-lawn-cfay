@@ -273,6 +273,35 @@
     }
     .toast .btn { border-color: var(--paper); color: var(--paper); min-height: 36px; padding: 0.2rem 0.9rem; }
 
+    /* Scorecard (Golf and other low-score-wins games) */
+    .card { display: grid; gap: 0.7rem; }
+    .card h2 { margin: 0; }
+    .card p { margin: 0; }
+    .card-pick .btn[aria-pressed="false"] { opacity: 0.45; border-style: dashed; }
+    .card-opts { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .card-opts select {
+      min-height: 40px; font: inherit; padding: 0.3rem 0.8rem; border-radius: 999px;
+      border: 2px solid var(--line); background-color: var(--paper); color: var(--ink);
+    }
+    .card-wrap { overflow-x: auto; border: 1.5px solid var(--rule); border-radius: 12px; }
+    .score { border-collapse: collapse; width: 100%; min-width: max-content; font-variant-numeric: tabular-nums; }
+    .score th, .score td { padding: 0.2rem 0.3rem; text-align: center; border-bottom: 1px dashed var(--rule); }
+    .score thead th { font-family: var(--hand); font-weight: 400; font-size: 1.1rem; color: var(--c); padding-top: 0.5rem; }
+    .score thead .av.mini { margin: 0 auto 0.1rem; display: block; }
+    .score tbody th, .score tfoot th, .score thead th:first-child {
+      position: sticky; left: 0; background: var(--paper); color: var(--muted); font-family: var(--body);
+      font-size: 0.8rem; font-weight: 700; text-align: left; padding-left: 0.6rem;
+    }
+    .score .cell {
+      min-width: 46px; min-height: 40px; border-radius: 10px; border: 1.5px solid transparent; background: transparent;
+      font: inherit; font-size: 1.15rem; font-weight: 700; color: var(--ink); cursor: pointer;
+    }
+    .score .cell.empty { color: var(--muted); border: 1.5px dashed var(--line); font-weight: 400; }
+    .score .cell:focus-visible { outline: 3px solid var(--p1); outline-offset: 1px; }
+    .score tfoot td { font-weight: 700; font-size: 1.25rem; border-bottom: 0; padding: 0.4rem 0.3rem; }
+    .score tfoot td.low { color: var(--sun); }
+    .card-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+
     /* Trash talk: chat-style */
     .talk { display: grid; gap: 0.7rem; }
     .talk h2 { margin: 0; }
@@ -403,6 +432,7 @@
         <button type="button" aria-pressed="true">🏆 All games</button>
         <button type="button" aria-pressed="false">🃏 Pushy Dos</button>
         <button type="button" aria-pressed="false">🀄 Rummikub</button>
+        <button type="button" aria-pressed="false">⛳ Golf</button>
       </div>
     </header>
 
@@ -425,6 +455,11 @@
     <div class="notice" id="setup" hidden>
       The scoreboard isn't connected to the Google Sheet yet. Paste the sheet's published CSV links into CONFIG at the bottom of this file.
     </div>
+
+    <section class="card" id="card" hidden aria-labelledby="cardTitle">
+      <h2 id="cardTitle">⛳ Scorecard</h2>
+      <div id="cardBody"></div>
+    </section>
 
     <section class="record" id="record" hidden>
       <h2>Record a win</h2>
@@ -570,8 +605,9 @@
       gamesCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-vsWBYHz5OvMn2UMOYJW2IgcizKY3Opg9MKmyp6wjA_9hTOCndAx4vsJzEf5dbHB37lYX_vIZyJRo/pub?gid=1&single=true&output=csv",            // optional: shows recent games when set
       recentShown: 10,
       refreshSeconds: 60,
-      games: ["Pushy Dos", "Rummikub"], // built-in game tabs (more can be added from the page)
-      gameEmoji: { "Pushy Dos": "🃏", "Rummikub": "🀄" }, // added games pick their own; otherwise 🎲
+      games: ["Pushy Dos", "Rummikub", "Golf"], // built-in game tabs (more can be added from the page)
+      gameEmoji: { "Pushy Dos": "🃏", "Rummikub": "🀄", "Golf": "⛳" }, // added games pick their own; otherwise 🎲
+      scored: { "Golf": { holes: 9 } },  // games kept on a hole-by-hole scorecard; lowest total wins
       nightCutoffHours: 4,  // a game night runs until 4 a.m. (match the Apps Script)
       undoHours: 3          // undo only works this long after a win (match the Apps Script)
     };
@@ -682,7 +718,7 @@
     }
 
     function normalize(d) {
-      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, talk: Array.isArray(d.talk) ? d.talk : null, live: true };
+      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, talk: Array.isArray(d.talk) ? d.talk : null, cards: Array.isArray(d.cards) ? d.cards : null, live: true };
     }
 
     async function getData() {
@@ -979,6 +1015,20 @@
         const who = pctList.filter(x => x.pct === bestPct).map(x => x.k);
         recs.push(["📈", "Best win rate (5+ games)", `${joinNames(who)} · ${Math.round(bestPct * 100)}%`]);
       }
+      // Best (lowest) scorecard round, per game and number of holes
+      const bestRounds = {};
+      for (const c of (data.cards || [])) {
+        if (c.status !== "done" || (currentGame !== ALL && c.game !== currentGame)) continue;
+        for (const n of c.players) {
+          const t = (c.scores[n] || []).reduce((a, b) => a + (b || 0), 0);
+          const k = `${c.game}|${c.holes}`;
+          if (!bestRounds[k] || t < bestRounds[k].t) bestRounds[k] = { t, who: [n], game: c.game, holes: c.holes };
+          else if (t === bestRounds[k].t && !bestRounds[k].who.includes(n)) bestRounds[k].who.push(n);
+        }
+      }
+      for (const r of Object.values(bestRounds)) {
+        recs.push([emojiOf(r.game), `Best ${r.game} round (${r.holes} ${r.holes === 1 ? "hole" : "holes"})`, `${joinNames(r.who)} · ${r.t}`]);
+      }
       const rl = $("records");
       rl.innerHTML = "";
       for (const [ic, lbl, val] of recs) {
@@ -1023,6 +1073,7 @@
       $("recent").hidden = recent.length === 0;
 
       renderTalk(data, players);
+      renderCard(data, players, roster);
 
       return { king, streak: streaks.current, champ };
     }
@@ -1333,7 +1384,8 @@
         wrap.innerHTML = "";
         for (const f of fields) {
           const input = document.createElement("input");
-          input.type = "text"; input.name = f.key; input.placeholder = f.placeholder || "";
+          input.type = f.type || "text"; input.name = f.key; input.placeholder = f.placeholder || "";
+          if (f.value !== undefined && f.value !== null) input.value = String(f.value);
           input.maxLength = f.max || 30; input.autocomplete = "off";
           input.setAttribute("aria-label", f.placeholder || f.key);
           wrap.appendChild(input);
@@ -1352,7 +1404,7 @@
           if (!fields.length) return finish(true);
           const out = {};
           for (const input of wrap.querySelectorAll("input")) out[input.name] = input.value.trim();
-          if (!out[fields[0].key]) { wrap.querySelector("input").focus(); return; }
+          if (!out[fields[0].key] && !fields[0].optional) { wrap.querySelector("input").focus(); return; }
           finish(out);
         };
         const onCancel = () => finish(null);
@@ -1395,6 +1447,165 @@
       }
     }
     $("shareBtn").addEventListener("click", shareNight);
+
+    /* ---------- Scorecard (Golf and other low-score-wins games) ---------- */
+    let cardPick = null;   // players ticked for a new round (kept between refreshes)
+    let cardPickFor = "";
+    function cardTotals(card) {
+      return card.players.map(n => {
+        const row = card.scores[n] || [];
+        return { name: n, total: row.reduce((a, b) => a + (b || 0), 0), filled: row.filter(v => v !== null && v !== undefined).length };
+      });
+    }
+    function renderCard(data, players, roster) {
+      const cfg = CONFIG.scored[currentGame];
+      const show = !!(data.live && cfg && data.cards);
+      $("card").hidden = !show;
+      if (!show) return;
+      const byName = Object.fromEntries(players.map(p => [p.name, p]));
+      const body = $("cardBody");
+      body.innerHTML = "";
+      const card = data.cards.find(c => c.game === currentGame && c.status === "active");
+
+      if (!card) {
+        // New round: who's playing + how many holes
+        $("cardTitle").textContent = `${emojiOf(currentGame)} Start a ${currentGame} round`;
+        if (!cardPick || cardPickFor !== currentGame) {
+          cardPick = new Set(players.filter(p => roster ? roster.has(p.name) : !p.status).map(p => p.name));
+          cardPickFor = currentGame;
+        }
+        const intro = document.createElement("p");
+        intro.className = "status";
+        intro.textContent = "Lowest total wins. Tap to choose who's playing:";
+        const chips = document.createElement("div");
+        chips.className = "talk-chips card-pick";
+        for (const p of players) {
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "btn"; b.style.setProperty("--c", p.color);
+          b.setAttribute("aria-pressed", String(cardPick.has(p.name)));
+          const av = document.createElement("span"); av.className = "av mini"; fillAvatar(av, p, false);
+          b.append(av, document.createTextNode(p.name));
+          b.addEventListener("click", () => {
+            if (cardPick.has(p.name)) cardPick.delete(p.name); else cardPick.add(p.name);
+            b.setAttribute("aria-pressed", String(cardPick.has(p.name)));
+          });
+          chips.appendChild(b);
+        }
+        const opts = document.createElement("div");
+        opts.className = "card-opts";
+        const lab = document.createElement("label");
+        lab.textContent = "Holes ";
+        const sel = document.createElement("select");
+        sel.id = "cardHoles";
+        for (let h = 1; h <= 18; h++) { const o = document.createElement("option"); o.value = h; o.textContent = h; sel.appendChild(o); }
+        sel.value = String(cfg.holes || 9);
+        lab.appendChild(sel);
+        const start = document.createElement("button");
+        start.type = "button"; start.className = "btn"; start.textContent = `${emojiOf(currentGame)} Start round`;
+        start.disabled = busy;
+        start.addEventListener("click", () => {
+          const list = players.map(p => p.name).filter(n => cardPick.has(n));
+          if (!list.length) { toast("Pick who's playing first.", false); return; }
+          run({ action: "startCard", game: currentGame, players: list, holes: Number(sel.value) }, `${emojiOf(currentGame)} Round started. Tap a box to enter a score.`, false);
+        });
+        opts.append(lab, start);
+        body.append(intro, chips, opts);
+        return;
+      }
+
+      // Active round: hole-by-hole grid
+      $("cardTitle").textContent = `${emojiOf(currentGame)} ${currentGame} scorecard`;
+      const totals = cardTotals(card);
+      const holesDone = Math.min(...totals.map(t => t.filled));
+      const anyScore = totals.some(t => t.filled > 0);
+      const low = anyScore ? Math.min(...totals.map(t => t.total)) : null;
+      const meta = document.createElement("p");
+      meta.className = "status";
+      meta.textContent = `${card.holes} ${card.holes === 1 ? "hole" : "holes"} · lowest total wins · tap a box to enter a score`;
+      const wrap = document.createElement("div");
+      wrap.className = "card-wrap";
+      const table = document.createElement("table");
+      table.className = "score";
+      const thead = table.createTHead().insertRow();
+      const corner = document.createElement("th"); corner.textContent = "Hole"; thead.appendChild(corner);
+      for (const n of card.players) {
+        const p = byName[n] || { name: n, avatar: "", color: "var(--ink)" };
+        const th = document.createElement("th");
+        th.style.setProperty("--c", p.color);
+        const av = document.createElement("span"); av.className = "av mini"; fillAvatar(av, p, false);
+        th.append(av, document.createTextNode(n));
+        thead.appendChild(th);
+      }
+      const tbody = table.createTBody();
+      for (let h = 1; h <= card.holes; h++) {
+        const tr = tbody.insertRow();
+        const th = document.createElement("th"); th.textContent = h; tr.appendChild(th);
+        for (const n of card.players) {
+          const v = (card.scores[n] || [])[h - 1];
+          const td = tr.insertCell();
+          const b = document.createElement("button");
+          b.type = "button";
+          const empty = v === null || v === undefined;
+          b.className = "cell" + (empty ? " empty" : "");
+          b.textContent = empty ? "–" : String(v);
+          b.setAttribute("aria-label", `${n}, hole ${h}: ${empty ? "no score yet" : v}`);
+          b.disabled = busy;
+          b.addEventListener("click", () => enterScore(card, n, h, empty ? null : v));
+          td.appendChild(b);
+        }
+      }
+      const tf = table.createTFoot().insertRow();
+      const tth = document.createElement("th"); tth.textContent = "Total"; tf.appendChild(tth);
+      for (const t of totals) {
+        const td = tf.insertCell();
+        td.textContent = (t.total === low && anyScore ? "👑 " : "") + t.total;
+        if (anyScore && t.total === low) td.className = "low";
+      }
+      wrap.appendChild(table);
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+      const complete = holesDone >= card.holes;
+      const fin = document.createElement("button");
+      fin.type = "button"; fin.className = "btn"; fin.disabled = busy || !complete;
+      fin.textContent = complete ? "🏁 Finish & record winner" : `🏁 Finish (${holesDone}/${card.holes} holes in)`;
+      fin.addEventListener("click", () => finishCard(card));
+      const cancel = document.createElement("button");
+      cancel.type = "button"; cancel.className = "btn small"; cancel.textContent = "Cancel round"; cancel.disabled = busy;
+      cancel.addEventListener("click", async () => {
+        const ok = await ask({ title: "Cancel this round?", text: "The scores won't count. This can't be undone from the page.", ok: "Cancel round" });
+        if (ok) run({ action: "cancelCard", id: card.id }, "Round cancelled.", false);
+      });
+      actions.append(fin, cancel);
+      body.append(meta, wrap, actions);
+    }
+
+    async function enterScore(card, player, hole, current) {
+      const res = await ask({
+        title: `${player} · hole ${hole}`,
+        text: "Whole numbers; minus scores are fine. Leave empty to clear.",
+        fields: [{ key: "score", type: "number", placeholder: "Score", max: 4, value: current, optional: true }],
+        ok: "Save"
+      });
+      if (!res) return;
+      const raw = res.score.trim();
+      if (raw !== "" && !/^-?\d{1,3}$/.test(raw)) { toast("Scores are whole numbers.", false); return; }
+      run({ action: "setScore", id: card.id, player, hole, score: raw === "" ? null : Number(raw) }, null, false);
+    }
+
+    async function finishCard(card) {
+      const totals = cardTotals(card);
+      const low = Math.min(...totals.map(t => t.total));
+      const winners = totals.filter(t => t.total === low).map(t => t.name);
+      const ok = await ask({
+        title: "Finish the round?",
+        text: `${winners.length > 1 ? `Tie: ${joinNames(winners)} each get a win` : `${winners[0]} wins`} with ${low}.`,
+        ok: "Finish"
+      });
+      if (!ok) return;
+      run({ action: "finishCard", id: card.id },
+        `${emojiOf(card.game)} ${winners.length > 1 ? `${joinNames(winners)} tie` : `${winners[0]} wins`} with ${low}!`, false);
+    }
 
     /* ---------- Trash talk (chat-style) ---------- */
     let talkMe = storeGet("pd-me") || "";   // who's posting on this phone

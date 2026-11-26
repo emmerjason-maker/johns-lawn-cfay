@@ -6,6 +6,8 @@
  * who's playing tonight, add a player, and mark a player MIA or back.
  * Wins are recorded per game (Pushy Dos, Rummikub, ...), and new games can be added.
  * Players can also post trash talk, stored in the "Trash Talk" tab.
+ * Scored games (like Golf) keep hole-by-hole scorecards in the "Scorecards" tab;
+ * finishing a card records the lowest total as that game's winner.
  *
  * HOW IT RUNS: the Google Sheet's Apps Script holds only the small loader in
  * pushy-dos-apps-script-loader.gs, which downloads and runs THIS file from the
@@ -35,6 +37,8 @@ const UNDO_HOURS = 3;         // undo only works this long after a win
 const TALK = "Trash Talk";    // A: Time, B: Player, C: Message. Created automatically.
 const TALK_SHOWN = 40;       // newest messages sent to the page
 const TALK_MAX_CHARS = 200;
+const CARDS = "Scorecards";   // A: Id, B: Started, C: Game, D: Status, E: Players, F: Holes, G: Scores (JSON), H: Finished
+const CARDS_SHOWN = 30;      // newest scorecards sent to the page
 
 // Reads are served from a 30-second ready-made copy when possible (much faster
 // than re-reading every tab). Every write refreshes the copy straight away.
@@ -107,6 +111,55 @@ function doPost(e) {
       const known = [DEFAULT_GAME].concat(readGameList_(), readGames_().map(g => g.game));
       if (known.some(g => g.toLowerCase() === name.toLowerCase())) return json_({ error: name + " is already on the scoreboard." });
       gameListSheet_().appendRow([name, cleanEmoji_(req.emoji)]);
+    } else if (req.action === "startCard") {
+      const game = cleanGame_(req.game);
+      const list = (Array.isArray(req.players) ? req.players : []).filter((n, i, a) => names.indexOf(n) >= 0 && a.indexOf(n) === i);
+      if (!list.length) return json_({ error: "Pick who's playing." });
+      const holes = Math.round(Number(req.holes));
+      if (!(holes >= 1 && holes <= 36)) return json_({ error: "Pick 1 to 36 holes." });
+      if (readCards_().some(c => c.status === "active" && c.game === game)) return json_({ error: "A " + game + " round is already going." });
+      const scores = {};
+      list.forEach(n => { scores[n] = Array(holes).fill(null); });
+      const sh = cardsSheet_();
+      const row = sh.getLastRow() + 1;
+      [1, 3, 4, 5, 7].forEach(c => sh.getRange(row, c).setNumberFormat("@")); // text columns stay text
+      sh.getRange(row, 1, 1, 8).setValues([[Date.now().toString(36), new Date(), game, "active", list.join(", "), holes, JSON.stringify(scores), ""]]);
+      sh.getRange(row, 2).setNumberFormat("yyyy-mm-dd hh:mm");
+    } else if (req.action === "setScore") {
+      const card = findCard_(req.id);
+      if (!card || card.status !== "active") return json_({ error: "That round has ended." });
+      if (card.players.indexOf(req.player) < 0) return json_({ error: "That player isn't in this round." });
+      const hole = Math.round(Number(req.hole));
+      if (!(hole >= 1 && hole <= card.holes)) return json_({ error: "Unknown hole." });
+      let score = null;
+      if (req.score !== null && req.score !== "" && req.score !== undefined) {
+        score = Number(req.score);
+        if (!Number.isInteger(score) || score < -99 || score > 999) return json_({ error: "Scores are whole numbers." });
+      }
+      card.scores[req.player][hole - 1] = score;
+      card.sheet.getRange(card.row, 7).setValue(JSON.stringify(card.scores));
+    } else if (req.action === "finishCard") {
+      const card = findCard_(req.id);
+      if (!card || card.status !== "active") return json_({ error: "That round has ended." });
+      const missing = card.players.some(n => card.scores[n].some(v => v === null));
+      if (missing) return json_({ error: "Fill in every hole first." });
+      const totals = card.players.map(n => ({ n: n, t: card.scores[n].reduce((a, b) => a + b, 0) }));
+      const best = Math.min.apply(null, totals.map(x => x.t));
+      const now = new Date();
+      totals.filter(x => x.t === best).forEach(x => {   // lowest total wins; a tie gives each tied player a win
+        const row = lastGameRow_(games) + 1;
+        games.getRange(row, 3, 1, 2).clearDataValidations();
+        games.getRange(row, 1, 1, 4).setValues([[nightKey_(now), x.n, now, card.game]]);
+        games.getRange(row, 1).setNumberFormat("yyyy-mm-dd");
+        games.getRange(row, 3).setNumberFormat("yyyy-mm-dd hh:mm");
+      });
+      card.sheet.getRange(card.row, 4).setValue("done");
+      card.sheet.getRange(card.row, 8).setValue(now);
+      card.sheet.getRange(card.row, 8).setNumberFormat("yyyy-mm-dd hh:mm");
+    } else if (req.action === "cancelCard") {
+      const card = findCard_(req.id);
+      if (!card || card.status !== "active") return json_({ error: "That round has ended." });
+      card.sheet.getRange(card.row, 4).setValue("cancelled");
     } else if (req.action === "say") {
       if (names.indexOf(req.player) < 0) return json_({ error: "Pick who you are first." });
       const text = cleanTalk_(req.text);
@@ -148,7 +201,11 @@ function readAll_() {
     nights: readNights_(),
     gameNames: readGameList_(),
     gameEmojis: readGameEmojis_(),
-    talk: readTalk_()
+    talk: readTalk_(),
+    cards: readCards_().filter(c => c.status !== "cancelled").slice(-CARDS_SHOWN).map(c => ({
+      id: c.id, game: c.game, status: c.status, players: c.players, holes: c.holes, scores: c.scores,
+      started: c.started, finished: c.finished
+    }))
   };
 }
 
@@ -186,6 +243,44 @@ function readGames_() {
     });
   }
   return out;
+}
+
+// Scorecards, oldest first
+function readCards_() {
+  const sh = ss_().getSheetByName(CARDS);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const n = sh.getLastRow() - 1;
+  const vals = sh.getRange(2, 1, n, 8).getValues();
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const r = vals[i], id = String(r[0]).trim();
+    if (!id) continue;
+    let scores = {};
+    try { scores = JSON.parse(String(r[6]) || "{}"); } catch (e) { scores = {}; }
+    out.push({
+      row: i + 2, sheet: sh, id: id,
+      started: r[1] instanceof Date ? r[1].getTime() : null,
+      game: String(r[2]).trim(), status: String(r[3]).trim(),
+      players: String(r[4]).split(",").map(x => x.trim()).filter(Boolean),
+      holes: Number(r[5]) || 0, scores: scores,
+      finished: r[7] instanceof Date ? r[7].getTime() : null
+    });
+  }
+  return out;
+}
+
+function findCard_(id) {
+  return readCards_().filter(c => c.id === String(id || ""))[0] || null;
+}
+
+function cardsSheet_() {
+  let sh = ss_().getSheetByName(CARDS);
+  if (!sh) {
+    sh = ss_().insertSheet(CARDS);
+    sh.getRange(1, 1, 1, 8).setValues([["Id", "Started", "Game", "Status", "Players", "Holes", "Scores", "Finished"]]);
+    sh.setFrozenRows(1);
+  }
+  return sh;
 }
 
 // Newest TALK_SHOWN messages, oldest first

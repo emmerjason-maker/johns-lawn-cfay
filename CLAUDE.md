@@ -30,6 +30,12 @@ Fleet Activities Yokosuka (CFAY), Japan.
   mentions show in that player's color, and a message calling out the person on
   this phone (pd-me) is highlighted and turns the nudge into "📣 X called you out!".
   Mentions are plain text in the sheet; no script change involved.
+  Scored games (Golf): `CONFIG.scored` lists games kept on a hole-by-hole
+  scorecard (lowest total wins). The Apps Script stores rounds in the sheet's
+  Scorecards tab (Id, Started, Game, Status active/done/cancelled, Players, Holes,
+  Scores as JSON, Finished) via `startCard`, `setScore`, `finishCard` and
+  `cancelCard`. One active round per game. Finishing writes the lowest total to
+  the Games tab as that game's win (a tie gives each tied player a win).
 - `pushy-dos-apps-script.gs`: the scoreboard's Apps Script logic. The Google
   Sheet's Apps Script project holds only `pushy-dos-apps-script-loader.gs`, which
   downloads and runs this file from GitHub Pages (cached ~10 minutes), so pushing
