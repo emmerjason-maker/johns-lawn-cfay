@@ -760,7 +760,7 @@
     }
 
     function normalize(d) {
-      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, talk: Array.isArray(d.talk) ? d.talk : null, cards: Array.isArray(d.cards) ? d.cards : null, live: true };
+      return { players: d.players, games: d.games || [], nights: d.nights || [], gameNames: d.gameNames || [], gameEmojis: d.gameEmojis || {}, talk: Array.isArray(d.talk) ? d.talk : null, cards: Array.isArray(d.cards) ? d.cards : null, asOf: Number(d.asOf) || 0, live: true };
     }
 
     async function getData() {
@@ -1227,8 +1227,13 @@
         return;
       }
       if (busy || document.querySelector("dialog[open]")) return; // don't redraw mid-action
+      const seq = writeSeq;
       try {
-        DATA = await getData();
+        const fresh = await getData();
+        // Ignore a refresh that started before one of our own saves, or a copy older than the one we have
+        if (seq !== writeSeq || busy) return;
+        if (DATA && DATA.live && fresh.live && DATA.asOf && fresh.asOf && fresh.asOf < DATA.asOf) return;
+        DATA = fresh;
         celebrate(render(DATA), false);
         stamp();
         saveScores(DATA);
@@ -1247,9 +1252,11 @@
       toastTimer = setTimeout(() => { $("toast").hidden = true; }, 6000);
     }
 
+    let writeSeq = 0;   // bumps on every save, so refreshes started earlier are ignored
     async function run(req, okMsg, withUndo) {
       if (busy) return false;
       busy = true;
+      writeSeq++;
       if (DATA) render(DATA);
       $("status").textContent = "Saving…";
       try {

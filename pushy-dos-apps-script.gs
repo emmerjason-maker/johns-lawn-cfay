@@ -42,13 +42,20 @@ const CARDS_SHOWN = 30;      // newest scorecards sent to the page
 
 // Reads are served from a 30-second ready-made copy when possible (much faster
 // than re-reading every tab). Every write refreshes the copy straight away.
+// A read that started before a write finished must not replace the fresh copy
+// with an older one, so writes bump a version number and reads check it.
 const READ_CACHE_KEY = "scoreboard-readall";
 const READ_CACHE_SECONDS = 30;
+const WRITE_VER_KEY = "scoreboard-writever";
 
 function doGet() {
-  const hit = CacheService.getScriptCache().get(READ_CACHE_KEY);
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(READ_CACHE_KEY);
   if (hit) return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
-  return json_(cacheRead_(readAll_()));
+  const verBefore = cache.get(WRITE_VER_KEY);
+  const data = readAll_();
+  if (cache.get(WRITE_VER_KEY) === verBefore) cacheRead_(data);   // skip if a write landed while reading
+  return json_(data);
 }
 
 function cacheRead_(obj) {
@@ -186,6 +193,7 @@ function doPost(e) {
     }
 
     SpreadsheetApp.flush();
+    CacheService.getScriptCache().put(WRITE_VER_KEY, String(Date.now()), 21600);
     return json_(cacheRead_(readAll_()));
   } catch (err) {
     return json_({ error: String(err && err.message || err) });
@@ -196,6 +204,7 @@ function doPost(e) {
 
 function readAll_() {
   return {
+    asOf: Date.now(),   // when this copy was read; the page ignores copies older than what it has
     players: readPlayers_().map(p => ({ name: p.name, wins: p.wins, status: p.status, avatar: p.avatar })),
     games: readGames_(),
     nights: readNights_(),
